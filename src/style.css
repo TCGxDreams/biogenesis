@@ -1272,16 +1272,18 @@ body {
   overflow-y: auto;
 }
 
+/* Legacy enzyme-item (kept for compat) */
 .enzyme-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
+  padding: 5px 10px;
   background: var(--bg-elevated);
   border-radius: var(--radius-sm);
   font-size: 12px;
   cursor: pointer;
   transition: all var(--transition-fast);
+  border-left: 2px solid transparent;
 }
 
 .enzyme-item:hover {
@@ -1289,20 +1291,22 @@ body {
 }
 
 .enzyme-item.selected {
-  background: rgba(6, 182, 212, 0.15);
-  border: 1px solid var(--accent-cyan);
+  background: rgba(0, 229, 255, 0.1);
+  border-left-color: var(--accent-cyan);
 }
 
 .enzyme-name {
   font-weight: 600;
   color: var(--accent-cyan);
-  min-width: 80px;
+  font-family: var(--font-mono);
+  min-width: 72px;
 }
 
 .enzyme-site {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--accent-blue);
+  letter-spacing: 1px;
 }
 
 .enzyme-cuts {
@@ -1312,6 +1316,103 @@ body {
   padding: 1px 6px;
   border-radius: 3px;
 }
+
+/* === New Restriction Analysis v2 === */
+
+/* Compact stats pill */
+.re-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-sm);
+  min-width: 58px;
+}
+
+.re-stat-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  line-height: 1.2;
+}
+
+.re-stat-lbl {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Overhang type badges */
+.overhang-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.overhang-5primep {
+  background: rgba(0, 229, 255, 0.12);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+}
+
+.overhang-3primep {
+  background: rgba(139, 92, 246, 0.12);
+  color: var(--accent-purple);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.overhang-blunt {
+  background: rgba(110, 118, 129, 0.15);
+  color: var(--text-muted);
+  border: 1px solid var(--border-muted);
+}
+
+/* Cut count badges */
+.cuts-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.cuts-unique {
+  background: rgba(0, 229, 255, 0.15);
+  color: var(--accent-cyan);
+}
+
+.cuts-few {
+  background: rgba(63, 185, 80, 0.12);
+  color: var(--accent-green);
+}
+
+.cuts-many {
+  background: rgba(248, 81, 73, 0.12);
+  color: var(--accent-red);
+}
+
+/* Restriction enzyme table */
+.re-table tbody tr.enzyme-row:hover {
+  background: var(--bg-hover);
+}
+
+.re-table tbody tr.enzyme-row.selected {
+  background: rgba(0, 229, 255, 0.06);
+}
+
+.re-table thead th {
+  background: var(--bg-secondary);
+}
+
 
 /* ====== STATISTICS ====== */
 .stats-grid {

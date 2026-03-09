@@ -750,23 +750,86 @@ function bindMotifEvents(seq) {
 
 function bindRestrictionEvents(seq) {
   const selectedEnzymes = new Set();
-  document.querySelectorAll('.enzyme-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const name = item.dataset.enzyme;
-      if (selectedEnzymes.has(name)) {
-        selectedEnzymes.delete(name);
-        item.style.background = '';
-        item.style.borderLeft = '';
-      } else {
-        selectedEnzymes.add(name);
-        item.style.background = 'rgba(6, 182, 212, 0.1)';
-        item.style.borderLeft = '2px solid var(--accent-cyan)';
-      }
-      const resultDiv = document.getElementById('digest-result');
-      if (resultDiv) {
-        resultDiv.innerHTML = renderDigestResult(seq, [...selectedEnzymes]);
-      }
+
+  function getChecked() {
+    return [...document.querySelectorAll('.enzyme-check:checked')].map(el => el.dataset.enzyme);
+  }
+
+  function updateGel() {
+    const names = getChecked();
+    selectedEnzymes.clear();
+    names.forEach(n => selectedEnzymes.add(n));
+    const gelDiv = document.getElementById('gel-result');
+    if (gelDiv) {
+      gelDiv.innerHTML = renderDigestResult(seq, [...selectedEnzymes]);
+    }
+  }
+
+  function applyFilters() {
+    const groupVal = document.getElementById('re-filter-group')?.value || 'all';
+    const cutsVal = document.getElementById('re-filter-cuts')?.value || 'all';
+    document.querySelectorAll('.enzyme-row').forEach(row => {
+      const check = row.querySelector('.enzyme-check');
+      if (!check) return;
+      const enzyme = check.dataset.enzyme;
+      // Group filter — we check via data attribute on row
+      const rowGroup = row.dataset.group || 'common';
+      const groupOk = groupVal === 'all' || rowGroup === groupVal;
+      // Cuts filter
+      const cutsText = row.querySelector('.cuts-badge')?.textContent || '0';
+      const cuts = parseInt(cutsText) || 0;
+      let cutsOk = true;
+      if (cutsVal === '1') cutsOk = cuts === 1;
+      else if (cutsVal === '2-3') cutsOk = cuts >= 2 && cuts <= 3;
+      else if (cutsVal === 'many') cutsOk = cuts >= 4;
+      row.style.display = groupOk && cutsOk ? '' : 'none';
     });
+  }
+
+  // Attach group/site to rows (needed for filter)
+  document.querySelectorAll('.enzyme-row').forEach(row => {
+    const name = row.dataset.enzyme;
+    // We assign group from the enzyme data
+    const { findRestrictionSites, RESTRICTION_ENZYMES_UNIQUE } = window.__restrictionUtils || {};
+    const enzyme = (RESTRICTION_ENZYMES_UNIQUE || []).find(e => e.name === name);
+    if (enzyme) row.dataset.group = enzyme.group || 'common';
+  });
+
+  // Enzyme checkbox toggle
+  document.querySelectorAll('.enzyme-check').forEach(chk => {
+    chk.addEventListener('change', updateGel);
+  });
+
+  // TR click → toggle checkbox
+  document.querySelectorAll('.enzyme-row').forEach(row => {
+    row.addEventListener('click', e => {
+      if (e.target.type === 'checkbox') return; // let checkbox handle itself
+      const chk = row.querySelector('.enzyme-check');
+      if (chk) { chk.checked = !chk.checked; chk.dispatchEvent(new Event('change')); }
+    });
+  });
+
+  // Filter dropdowns
+  document.getElementById('re-filter-group')?.addEventListener('change', applyFilters);
+  document.getElementById('re-filter-cuts')?.addEventListener('change', applyFilters);
+
+  // Select unique button
+  document.getElementById('re-select-unique')?.addEventListener('click', () => {
+    document.querySelectorAll('.enzyme-row').forEach(row => {
+      const chk = row.querySelector('.enzyme-check');
+      if (!chk) return;
+      const badge = row.querySelector('.cuts-unique');
+      if (badge && row.style.display !== 'none') { chk.checked = true; }
+      else chk.checked = false;
+    });
+    updateGel();
+  });
+
+  // Clear all
+  document.getElementById('re-clear-all')?.addEventListener('click', () => {
+    document.querySelectorAll('.enzyme-check').forEach(c => c.checked = false);
+    selectedEnzymes.clear();
+    updateGel();
   });
 }
 
