@@ -21,37 +21,47 @@
     <header id="toolbar">
       <div class="toolbar-left">
         <div class="app-logo">
-          <img src="/src/assets/logo.svg" width="32" height="32" alt="BioGenesis Logo" style="filter:drop-shadow(0 0 8px rgba(0,212,232,0.5));" />
+          <img src="/src/assets/logo.svg" width="30" height="30" alt="BioGenesis Logo"
+            style="filter:drop-shadow(0 0 6px rgba(0,229,255,0.4));" />
           <span class="app-title">BioGenesis</span>
         </div>
         <div class="toolbar-divider"></div>
-        <div class="toolbar-actions">
-          <button class="toolbar-btn" id="btn-import" title="Import File">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+
+        <!-- Group 1: File -->
+        <div class="toolbar-group">
+          <span class="toolbar-group-label">File</span>
+          <button class="toolbar-btn" id="btn-new-seq" title="New Sequence (Ctrl+N)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            <span>New</span>
+          </button>
+          <button class="toolbar-btn" id="btn-import" title="Import File (Ctrl+O)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
               <polyline points="17 8 12 3 7 8" />
               <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
             <span>Import</span>
           </button>
-          <button class="toolbar-btn" id="btn-export" title="Export">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <button class="toolbar-btn" id="btn-export" title="Export (Ctrl+S)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
             <span>Export</span>
           </button>
-          <div class="toolbar-divider"></div>
-          <button class="toolbar-btn" id="btn-new-seq" title="New Sequence">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            <span>New</span>
-          </button>
+        </div>
+
+        <div class="toolbar-divider"></div>
+
+        <!-- Group 2: Analyze -->
+        <div class="toolbar-group">
+          <span class="toolbar-group-label">Analyze</span>
           <button class="toolbar-btn" id="btn-align" title="Align Sequences">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="3" y1="6" x2="21" y2="6" />
               <line x1="3" y1="12" x2="17" y2="12" />
               <line x1="3" y1="18" x2="21" y2="18" />
@@ -59,31 +69,36 @@
             <span>Align</span>
           </button>
           <button class="toolbar-btn" id="btn-blast" title="BLAST Search">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
             <span>BLAST</span>
           </button>
-          <div class="toolbar-divider"></div>
+        </div>
+
+        <div class="toolbar-divider"></div>
+
+        <!-- Group 3: Transform -->
+        <div class="toolbar-group">
+          <span class="toolbar-group-label">Transform</span>
           <button class="toolbar-btn" id="btn-rc" title="Reverse Complement">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="1 4 1 10 7 10" />
               <polyline points="23 20 23 14 17 14" />
               <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15" />
             </svg>
             <span>Rev Comp</span>
           </button>
-          <button class="toolbar-btn" id="btn-translate" title="Translate">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path
-                d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04z" />
-              <path d="M18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z" />
+          <button class="toolbar-btn" id="btn-translate" title="Translate (DNA→Protein)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
             <span>Translate</span>
           </button>
         </div>
       </div>
+
       <div class="toolbar-right">
         <div class="search-box">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
