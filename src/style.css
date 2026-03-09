@@ -1,75 +1,75 @@
 /* ============================================
-   BioGenesis — Premium Dark Theme Design System
-   PTNK-inspired Navy × Cyan Brand Identity
+   BioGenesis — Premium Dark Theme
+   Inspired by PTNK Future: #00E5FF × GitHub Dark
    ============================================ */
 
 /* CSS Variables */
 :root {
-  /* Backgrounds — deep navy undertone */
-  --bg-primary: #080e1a;
-  --bg-secondary: #0d1526;
-  --bg-tertiary: #111d33;
-  --bg-elevated: #162040;
-  --bg-hover: #1a2847;
-  --bg-active: #1e3055;
-  --bg-glass: rgba(13, 21, 38, 0.75);
+  /* Backgrounds — original GitHub dark */
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-tertiary: #1c2128;
+  --bg-elevated: #21262d;
+  --bg-hover: #292e36;
+  --bg-active: #30363d;
+  --bg-glass: rgba(22, 27, 34, 0.8);
 
   /* Borders */
-  --border-default: #1e3055;
-  --border-muted: #111d33;
-  --border-accent: rgba(0, 212, 232, 0.25);
+  --border-default: #30363d;
+  --border-muted: #21262d;
+  --border-accent: rgba(0, 229, 255, 0.2);
 
   /* Text */
-  --text-primary: #e8f0fe;
-  --text-secondary: #8fadd4;
-  --text-muted: #4d6a96;
-  --text-accent: #00d4e8;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+  --text-accent: #00e5ff;
 
-  /* Brand Accents — PTNK Navy × Cyan */
-  --accent-cyan: #00d4e8;
-  --accent-blue: #1e90ff;
-  --accent-navy: #0a2463;
-  --accent-purple: #7c6ff7;
-  --accent-green: #22c55e;
-  --accent-red: #f04747;
-  --accent-orange: #f59e0b;
-  --accent-pink: #e879f9;
-  --accent-yellow: #fbbf24;
+  /* Accents — PTNK Future cyan + original palette */
+  --accent-cyan: #00e5ff;
+  --accent-teal: #0097a7;
+  --accent-blue: #58a6ff;
+  --accent-purple: #8b5cf6;
+  --accent-green: #3fb950;
+  --accent-red: #f85149;
+  --accent-orange: #d29922;
+  --accent-pink: #f778ba;
+  --accent-yellow: #e3b341;
 
   /* Nucleotide colors */
-  --nt-a: #22c55e;
-  --nt-t: #f04747;
-  --nt-c: #00d4e8;
-  --nt-g: #fbbf24;
-  --nt-u: #e879f9;
+  --nt-a: #3fb950;
+  --nt-t: #f85149;
+  --nt-c: #58a6ff;
+  --nt-g: #e3b341;
+  --nt-u: #f778ba;
 
   /* Amino acid property colors */
-  --aa-hydrophobic: #f59e0b;
-  --aa-polar: #22c55e;
-  --aa-charged-pos: #1e90ff;
-  --aa-charged-neg: #f04747;
-  --aa-special: #e879f9;
+  --aa-hydrophobic: #d29922;
+  --aa-polar: #3fb950;
+  --aa-charged-pos: #58a6ff;
+  --aa-charged-neg: #f778ba;
+  --aa-special: #e3b341;
 
   /* Gradients */
-  --gradient-brand: linear-gradient(135deg, #0a2463 0%, #00d4e8 100%);
-  --gradient-accent: linear-gradient(135deg, #00d4e8 0%, #7c6ff7 100%);
-  --gradient-warm: linear-gradient(135deg, #f04747 0%, #f59e0b 100%);
-  --gradient-cool: linear-gradient(135deg, #1e90ff 0%, #22c55e 100%);
-  --gradient-glow: radial-gradient(ellipse at 50% 0%, rgba(0, 212, 232, 0.12) 0%, transparent 70%);
+  --gradient-brand: linear-gradient(135deg, #00e5ff 0%, #8b5cf6 100%);
+  --gradient-accent: linear-gradient(135deg, #58a6ff 0%, #8b5cf6 100%);
+  --gradient-warm: linear-gradient(135deg, #f85149 0%, #d29922 100%);
+  --gradient-cool: linear-gradient(135deg, #58a6ff 0%, #3fb950 100%);
+  --gradient-glow: radial-gradient(ellipse at 50% 0%, rgba(0, 229, 255, 0.08) 0%, transparent 70%);
 
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
-  --shadow-glow: 0 0 24px rgba(0, 212, 232, 0.2);
-  --shadow-glow-sm: 0 0 12px rgba(0, 212, 232, 0.15);
-  --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(0, 229, 255, 0.18);
+  --shadow-glow-sm: 0 0 12px rgba(0, 229, 255, 0.12);
+  --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
   /* Border radii */
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-full: 9999px;
 
   /* Typography */
@@ -82,10 +82,10 @@
   --transition-slow: 380ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Layout */
-  --toolbar-height: 52px;
-  --sidebar-width: 265px;
-  --statusbar-height: 26px;
-  --tab-height: 38px;
+  --toolbar-height: 48px;
+  --sidebar-width: 260px;
+  --statusbar-height: 28px;
+  --tab-height: 36px;
 }
 
 /* Keyframe animations */
@@ -121,11 +121,11 @@
 
   0%,
   100% {
-    box-shadow: 0 0 8px rgba(0, 212, 232, 0.2);
+    box-shadow: 0 0 8px rgba(0, 229, 255, 0.2);
   }
 
   50% {
-    box-shadow: 0 0 20px rgba(0, 212, 232, 0.5);
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
   }
 }
 
@@ -192,7 +192,7 @@ body {
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-default);
   /* Subtle cyan glow line at top */
-  box-shadow: 0 1px 0 var(--border-accent), inset 0 1px 0 rgba(0, 212, 232, 0.06);
+  box-shadow: 0 1px 0 var(--border-accent), inset 0 1px 0 rgba(0, 229, 255, 0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -271,8 +271,8 @@ body {
 
 .toolbar-btn.active {
   color: var(--accent-cyan);
-  background: rgba(0, 212, 232, 0.08);
-  border-color: rgba(0, 212, 232, 0.2);
+  background: rgba(0, 229, 255, 0.08);
+  border-color: rgba(0, 229, 255, 0.2);
 }
 
 .toolbar-btn svg {
@@ -292,7 +292,7 @@ body {
 
 .search-box:focus-within {
   border-color: var(--accent-cyan);
-  box-shadow: 0 0 0 3px rgba(0, 212, 232, 0.12);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.12);
   background: var(--bg-elevated);
 }
 
@@ -326,7 +326,7 @@ body {
 #sidebar {
   width: var(--sidebar-width);
   background: var(--bg-secondary);
-  background-image: radial-gradient(ellipse at 50% 0%, rgba(0, 212, 232, 0.06) 0%, transparent 60%);
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(0, 229, 255, 0.06) 0%, transparent 60%);
   border-right: 1px solid var(--border-default);
   display: flex;
   flex-direction: column;
@@ -404,7 +404,7 @@ body {
 }
 
 .file-item.active {
-  background: rgba(0, 212, 232, 0.08);
+  background: rgba(0, 229, 255, 0.08);
   color: var(--accent-cyan);
   border-left: 2px solid var(--accent-cyan);
   padding-left: 6px;
@@ -463,10 +463,10 @@ body {
 }
 
 .tool-btn.active {
-  background: linear-gradient(90deg, rgba(0, 212, 232, 0.12), rgba(0, 212, 232, 0.04));
+  background: linear-gradient(90deg, rgba(0, 229, 255, 0.12), rgba(0, 229, 255, 0.04));
   color: var(--accent-cyan);
   border-left: 2px solid var(--accent-cyan);
-  box-shadow: inset 0 0 20px rgba(0, 212, 232, 0.04);
+  box-shadow: inset 0 0 20px rgba(0, 229, 255, 0.04);
   animation: slide-in-left var(--transition-fast);
 }
 
@@ -483,7 +483,7 @@ body {
 .tool-btn.active .tool-svg {
   opacity: 1;
   color: var(--accent-cyan);
-  filter: drop-shadow(0 0 4px rgba(0, 212, 232, 0.5));
+  filter: drop-shadow(0 0 4px rgba(0, 229, 255, 0.5));
 }
 
 .tool-btn:hover .tool-svg {
@@ -762,7 +762,7 @@ body {
   right: 0;
   height: 2px;
   background: var(--gradient-brand);
-  box-shadow: 0 0 8px rgba(0, 212, 232, 0.5);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
 }
 
 .tab-close {
@@ -810,7 +810,7 @@ body {
   padding: 16px 20px 14px;
   border-bottom: 1px solid var(--border-default);
   background: var(--bg-secondary);
-  background-image: radial-gradient(ellipse at 0% 50%, rgba(0, 212, 232, 0.05) 0%, transparent 60%);
+  background-image: radial-gradient(ellipse at 0% 50%, rgba(0, 229, 255, 0.05) 0%, transparent 60%);
   position: relative;
 }
 
@@ -1463,7 +1463,7 @@ body {
   background: var(--bg-hover);
   border-color: var(--accent-cyan);
   color: var(--accent-cyan);
-  box-shadow: 0 0 0 1px rgba(0, 212, 232, 0.2);
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.2);
 }
 
 .btn-danger {
