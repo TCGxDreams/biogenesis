@@ -164,10 +164,78 @@ export function parseNewick(str) {
 // Convert tree to Newick format
 export function toNewick(node) {
     if (!node.children || node.children.length === 0) {
-        return node.name + (node.length ? ':' + node.length.toFixed(4) : '');
+        return node.name + (node.length ? ':' + Math.max(0.0001, node.length).toFixed(4) : '');
     }
     const children = node.children.map(c => toNewick(c)).join(',');
-    return '(' + children + ')' + node.name + (node.length ? ':' + node.length.toFixed(4) : '');
+    return '(' + children + ')' + node.name + (node.length ? ':' + Math.max(0.0001, node.length).toFixed(4) : '');
+}
+
+// UPGMA Algorithm
+export function upgma(distMatrix, names) {
+    let clusters = names.map((name, i) => ({ name, size: 1, node: { name, length: 0 }, id: i }));
+    let d = distMatrix.map(row => [...row]);
+
+    while (clusters.length > 2) {
+        let minD = Infinity, minI = 0, minJ = 1;
+        for (let i = 0; i < clusters.length; i++) {
+            for (let j = i + 1; j < clusters.length; j++) {
+                if (d[i][j] < minD) {
+                    minD = d[i][j];
+                    minI = i;
+                    minJ = j;
+                }
+            }
+        }
+
+        const c1 = clusters[minI];
+        const c2 = clusters[minJ];
+        const branchLen = minD / 2;
+
+        const newNode = {
+            name: '',
+            children: [
+                { ...c1.node, length: Math.max(0, branchLen - (c1.height || 0)) },
+                { ...c2.node, length: Math.max(0, branchLen - (c2.height || 0)) }
+            ],
+            height: branchLen
+        };
+
+        const newD = [];
+        const newClusters = [];
+
+        for (let k = 0; k < clusters.length; k++) {
+            if (k !== minI && k !== minJ) {
+                newClusters.push(clusters[k]);
+                const distToNew = (d[k][minI] * c1.size + d[k][minJ] * c2.size) / (c1.size + c2.size);
+                newD.push(distToNew);
+            }
+        }
+
+        const nextD = Array.from({ length: newClusters.length + 1 }, () => new Array(newClusters.length + 1).fill(0));
+        for (let i = 0; i < newClusters.length; i++) {
+            for (let j = 0; j < newClusters.length; j++) {
+                nextD[i][j] = d[clusters.indexOf(newClusters[i])][clusters.indexOf(newClusters[j])];
+            }
+            nextD[i][newClusters.length] = newD[i];
+            nextD[newClusters.length][i] = newD[i];
+        }
+
+        d = nextD;
+        clusters = newClusters;
+        clusters.push({ name: '', size: c1.size + c2.size, node: newNode, height: branchLen });
+    }
+
+    if (clusters.length === 2) {
+        const branchLen = d[0][1] / 2;
+        return {
+            name: '',
+            children: [
+                { ...clusters[0].node, length: Math.max(0, branchLen - (clusters[0].height || 0)) },
+                { ...clusters[1].node, length: Math.max(0, branchLen - (clusters[1].height || 0)) }
+            ]
+        };
+    }
+    return clusters[0].node;
 }
 
 // Render phylogenetic tree as SVG
@@ -176,7 +244,7 @@ export function renderTreeSVG(tree, width = 700, height = 400) {
     const numLeaves = leaves.length;
     if (numLeaves === 0) return '<svg></svg>';
 
-    const margin = { top: 30, right: 150, bottom: 30, left: 30 };
+    const margin = { top: 40, right: 180, bottom: 50, left: 40 };
     const plotWidth = width - margin.left - margin.right;
     const plotHeight = height - margin.top - margin.bottom;
 
@@ -189,6 +257,11 @@ export function renderTreeSVG(tree, width = 700, height = 400) {
     const labels = [];
     const dots = [];
 
+    // Colors derived from BioGenesis premium theme
+    const strokeColor = "#00d4e8";
+    const labelColor = "var(--text-primary)";
+    const nodeColor = "#0a2463";
+
     function layout(node, x = 0) {
         if (!node.children || node.children.length === 0) {
             const y = margin.top + leafIndex * yStep;
@@ -196,44 +269,63 @@ export function renderTreeSVG(tree, width = 700, height = 400) {
             node._x = margin.left + x * xScale;
             node._y = y;
 
-            labels.push(`<text class="phylo-label" x="${node._x + 8}" y="${node._y + 4}">${escapeHtml(node.name)}</text>`);
-            dots.push(`<circle class="phylo-node-dot" cx="${node._x}" cy="${node._y}" r="3"/>`);
+            labels.push(`<text x="${node._x + 12}" y="${node._y + 4}" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="${labelColor}">${escapeHtml(node.name)}</text>`);
+            dots.push(`<circle cx="${node._x}" cy="${node._y}" r="4" fill="${strokeColor}" stroke="${nodeColor}" stroke-width="2"/>`);
             return y;
         }
 
-        const childYs = node.children.map(child => layout(child, x + (child.length || 0.1)));
-        const midY = (Math.min(...childYs) + Math.max(...childYs)) / 2;
+        const childYs = node.children.map(child => layout(child, x + (child.length || 0.05)));
+        const minY = Math.min(...childYs);
+        const maxY = Math.max(...childYs);
+        const midY = (minY + maxY) / 2;
 
         node._x = margin.left + x * xScale;
         node._y = midY;
 
-        // Horizontal lines to children
+        // Draw vertical spine
+        paths.push(`<path d="M${node._x},${minY} V${maxY}" fill="none" stroke="${strokeColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`);
+
+        // Draw horizontal branches to children
         for (const child of node.children) {
-            paths.push(`<path class="phylo-branch" d="M${node._x},${node._y} H${child._x} V${child._y}"/>`);
+            paths.push(`<path d="M${node._x},${child._y} H${child._x}" fill="none" stroke="${strokeColor}" stroke-width="2" stroke-linecap="round"/>`);
         }
 
-        dots.push(`<circle class="phylo-node-dot" cx="${node._x}" cy="${node._y}" r="2.5"/>`);
+        dots.push(`<circle cx="${node._x}" cy="${node._y}" r="3" fill="${nodeColor}" stroke="${strokeColor}" stroke-width="1.5"/>`);
         return midY;
     }
 
     layout(tree);
 
-    // Scale bar
-    const scaleLen = maxDepth > 0 ? maxDepth * 0.2 : 0.1;
+    // Beautiful Scale bar
+    const scaleLen = maxDepth > 0 ? Number.parseFloat((maxDepth * 0.2).toPrecision(1)) : 0.1;
     const scaleX = margin.left;
-    const scaleY = height - 10;
+    const scaleY = height - 20;
     const scalePx = scaleLen * xScale;
-    const scaleBar = `
-    <line x1="${scaleX}" y1="${scaleY}" x2="${scaleX + scalePx}" y2="${scaleY}" stroke="var(--text-muted)" stroke-width="1.5"/>
-    <text x="${scaleX + scalePx / 2}" y="${scaleY - 5}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${scaleLen.toFixed(2)}</text>
-  `;
 
-    return `<svg class="phylo-svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-    ${paths.join('\n')}
-    ${dots.join('\n')}
-    ${labels.join('\n')}
-    ${scaleBar}
-  </svg>`;
+    // Draw scale block
+    const scaleBar = `
+        <g transform="translate(${scaleX}, ${scaleY})">
+            <line x1="0" y1="0" x2="${scalePx}" y2="0" stroke="var(--text-muted)" stroke-width="2"/>
+            <line x1="0" y1="-4" x2="0" y2="4" stroke="var(--text-muted)" stroke-width="2"/>
+            <line x1="${scalePx}" y1="-4" x2="${scalePx}" y2="4" stroke="var(--text-muted)" stroke-width="2"/>
+            <text x="${scalePx / 2}" y="-8" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="500" fill="var(--text-muted)">${scaleLen} substitutions/site</text>
+        </g>
+    `;
+
+    return `<svg class="phylo-svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" style="background:transparent;">
+        <defs>
+            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="2" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+        </defs>
+        <g style="filter: url(#glow);">
+            ${paths.join('\n')}
+        </g>
+        ${dots.join('\n')}
+        ${labels.join('\n')}
+        ${scaleBar}
+    </svg>`;
 }
 
 function getLeafNodes(node) {

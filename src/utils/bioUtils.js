@@ -98,6 +98,60 @@ export function meltingTemp(seq) {
     return 64.9 + 41 * (comp.G + comp.C - 16.4) / len;
 }
 
+// Nearest-Neighbor Thermodynamics (SantaLucia 1998)
+// ΔH (kcal/mol), ΔS (cal/K·mol)
+const NN_PARAMS = {
+    'AA': { dH: -7.9, dS: -22.2 }, 'TT': { dH: -7.9, dS: -22.2 },
+    'AT': { dH: -7.2, dS: -20.4 }, 'TA': { dH: -7.2, dS: -21.3 },
+    'CA': { dH: -8.5, dS: -22.7 }, 'TG': { dH: -8.5, dS: -22.7 },
+    'GT': { dH: -8.4, dS: -22.4 }, 'AC': { dH: -8.4, dS: -22.4 },
+    'CT': { dH: -7.8, dS: -21.0 }, 'AG': { dH: -7.8, dS: -21.0 },
+    'GA': { dH: -8.2, dS: -22.2 }, 'TC': { dH: -8.2, dS: -22.2 },
+    'CG': { dH: -10.6, dS: -27.2 }, 'GC': { dH: -9.8, dS: -24.4 },
+    'GG': { dH: -8.0, dS: -19.9 }, 'CC': { dH: -8.0, dS: -19.9 },
+    // Initiation penalties
+    'initA': { dH: 2.3, dS: 4.1 }, 'initT': { dH: 2.3, dS: 4.1 },
+    'initG': { dH: 0.1, dS: -2.8 }, 'initC': { dH: 0.1, dS: -2.8 },
+};
+
+export function calculateTmNN(seq, primerConc = 50e-9, naConc = 0.05) {
+    const upper = seq.toUpperCase().replace(/[^ATCG]/g, '');
+    if (upper.length < 8) return meltingTemp(upper); // fallback for very short
+
+    let dH = 0; // kcal/mol
+    let dS = 0; // cal/K·mol
+
+    // Initiation
+    const first = upper[0];
+    const last = upper[upper.length - 1];
+    dH += NN_PARAMS[`init${first}`]?.dH || 0;
+    dS += NN_PARAMS[`init${first}`]?.dS || 0;
+    dH += NN_PARAMS[`init${last}`]?.dH || 0;
+    dS += NN_PARAMS[`init${last}`]?.dS || 0;
+
+    // Nearest Neighbor pairs
+    for (let i = 0; i < upper.length - 1; i++) {
+        const pair = upper.substring(i, i + 2);
+        if (NN_PARAMS[pair]) {
+            dH += NN_PARAMS[pair].dH;
+            dS += NN_PARAMS[pair].dS;
+        }
+    }
+
+    // Convert dH to cal/mol
+    dH *= 1000;
+
+    // Salt correction (Schildkraut and Lifson 1965 formulation on entropy)
+    dS += 0.368 * (upper.length - 1) * Math.log(naConc);
+
+    // Tm = (dH / (dS + R * ln(C/4))) - 273.15
+    const R = 1.987; // Gas constant
+    const tm = (dH / (dS + R * Math.log(primerConc / 4))) - 273.15;
+
+    return Math.max(0, tm);
+}
+
+
 // ---- ORF Finding ----
 
 export function findORFs(seq, minLength = 30) {

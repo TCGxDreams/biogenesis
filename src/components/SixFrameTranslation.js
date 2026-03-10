@@ -1,156 +1,237 @@
 // ============================================
 // BioGenesis — 6-Frame Translation Component
+// Advanced with ORF Highlighting and FASTA Export
 // ============================================
 
 import { translate, reverseComplement, getAminoAcidClass, getNucleotideClass, CODON_TABLE } from '../utils/bioUtils.js';
 
 export function renderSixFrameTranslation(seq) {
-    if (seq.type === 'protein') {
-        return `
+  if (seq.type === 'protein') {
+    return `
       <div class="panel active">
         <div class="panel-header"><h2>6-Frame Translation</h2><p>Requires a DNA or RNA sequence</p></div>
         <div class="panel-body"><div class="empty-state"><p class="empty-state-text">Please select a DNA/RNA sequence</p></div></div>
       </div>`;
+  }
+
+  const seqStr = seq.sequence.toUpperCase();
+  const rc = reverseComplement(seqStr);
+  const displayLen = Math.min(seqStr.length, 3000); // Increased display limit for practical viewing
+  const dna = seqStr.substring(0, displayLen);
+  const rcDna = rc.substring(0, displayLen);
+
+  const allOrfs = [];
+
+  // Helper to find ORFs in a frame string
+  function findOrfs(protein, frameLabel, direction) {
+    const frameOrfs = [];
+    let inOrf = false, orfStart = 0;
+    for (let i = 0; i < protein.length; i++) {
+      if (protein[i] === 'M' && !inOrf) {
+        inOrf = true;
+        orfStart = i;
+      } else if (protein[i] === '*' && inOrf) {
+        const orfLen = i - orfStart;
+        if (orfLen >= 10) { // at least 10 aa
+          const o = {
+            frame: frameLabel,
+            direction,
+            start: orfStart,
+            end: i,
+            length: orfLen,
+            protein: protein.substring(orfStart, i + 1)
+          };
+          frameOrfs.push(o);
+          allOrfs.push(o);
+        }
+        inOrf = false;
+      }
     }
+    return frameOrfs;
+  }
 
-    const seqStr = seq.sequence.toUpperCase();
-    const rc = reverseComplement(seqStr);
-    const displayLen = Math.min(seqStr.length, 600); // limit for display
-    const dna = seqStr.substring(0, displayLen);
-    const rcDna = rc.substring(0, displayLen);
+  // Forward frames
+  const frames = [];
+  for (let f = 0; f < 3; f++) {
+    const protein = translate(dna, f);
+    const orfs = findOrfs(protein, `+${f + 1}`, 'forward');
+    frames.push({ label: `+${f + 1}`, frame: f, protein, direction: 'forward', orfs });
+  }
 
-    // Forward frames
-    const frames = [];
-    for (let f = 0; f < 3; f++) {
-        const protein = translate(dna, f);
-        frames.push({ label: `+${f + 1}`, frame: f, protein, direction: 'forward' });
-    }
+  // Reverse frames
+  for (let f = 0; f < 3; f++) {
+    const protein = translate(rcDna, f);
+    const orfs = findOrfs(protein, `-${f + 1}`, 'reverse');
+    frames.push({ label: `-${f + 1}`, frame: f, protein, direction: 'reverse', orfs });
+  }
 
-    // Reverse frames
-    for (let f = 0; f < 3; f++) {
-        const protein = translate(rcDna, f);
-        frames.push({ label: `-${f + 1}`, frame: f, protein, direction: 'reverse' });
-    }
+  allOrfs.sort((a, b) => b.length - a.length);
 
-    // Render DNA sequence line
-    const dnaLine = dna.split('').map(c => `<span class="${getNucleotideClass(c)}">${c}</span>`).join('');
+  // Render DNA sequence line
+  const dnaLine = dna.split('').map(c => `<span class="${getNucleotideClass(c)}">${c}</span>`).join('');
 
-    // Render each frame
-    const frameBlocks = frames.map(fr => {
-        const aaHtml = fr.protein.split('').map(aa => {
-            if (aa === '*') return `<span class="stop-codon">*</span>`;
-            if (aa === 'M') return `<span class="met-codon">M</span>`;
-            return `<span class="${getAminoAcidClass(aa)}">${aa}</span>`;
-        }).join('');
+  // Render each frame
+  const frameBlocks = frames.map(fr => {
+    const spacedAa = fr.protein.split('').map((aa, i) => {
+      const cls = aa === '*' ? 'stop-codon' : aa === 'M' ? 'met-codon' : getAminoAcidClass(aa);
 
-        // Space amino acids to align with codons
-        const spacedAa = fr.protein.split('').map((aa, i) => {
-            const cls = aa === '*' ? 'stop-codon' : aa === 'M' ? 'met-codon' : getAminoAcidClass(aa);
-            return `<span class="${cls}"> ${aa} </span>`;
-        }).join('');
+      // Check if inside any ORF for highlighting
+      const inOrf = fr.orfs.some(o => i >= o.start && i <= o.end);
+      const style = inOrf ? `background:rgba(0, 212, 232, 0.15);border-bottom:2px solid var(--accent-cyan);` : ``;
 
-        return `
+      return `<span class="${cls}" style="${style}"> ${aa} </span>`;
+    }).join('');
+
+    return `
       <div class="frame-row">
-        <div class="frame-label">${fr.direction === 'forward' ? 'Forward' : 'Reverse'} Frame ${fr.label}</div>
-        <div class="frame-sequence">${spacedAa}</div>
+        <div class="frame-label" style="min-width:100px;font-weight:600;color:var(--text-secondary);">${fr.direction === 'forward' ? 'Forward' : 'Reverse'} ${fr.label}</div>
+        <div class="frame-sequence" style="line-height:1.6;">${spacedAa}</div>
       </div>
     `;
-    });
+  });
 
-    // ORF summary across all frames
-    let orfSummary = '';
-    const allOrfs = [];
-    for (const fr of frames) {
-        let inOrf = false, orfStart = 0;
-        for (let i = 0; i < fr.protein.length; i++) {
-            if (fr.protein[i] === 'M' && !inOrf) {
-                inOrf = true;
-                orfStart = i;
-            } else if (fr.protein[i] === '*' && inOrf) {
-                const orfLen = i - orfStart;
-                if (orfLen >= 10) { // at least 10 aa
-                    allOrfs.push({
-                        frame: fr.label,
-                        start: orfStart,
-                        end: i,
-                        length: orfLen,
-                        protein: fr.protein.substring(orfStart, i + 1)
-                    });
-                }
-                inOrf = false;
-            }
-        }
-    }
-    allOrfs.sort((a, b) => b.length - a.length);
-
-    if (allOrfs.length > 0) {
-        orfSummary = `
-      <div style="margin-top:20px;">
+  let orfSummary = '';
+  if (allOrfs.length > 0) {
+    orfSummary = `
+      <div style="margin-top:24px;">
         <h3 style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text-secondary);">ORFs Found Across All Frames (min 10 aa)</h3>
         <table class="blast-results-table">
-          <thead><tr><th>Frame</th><th>Start (aa)</th><th>End (aa)</th><th>Length (aa)</th><th>First 30 residues</th></tr></thead>
+          <thead><tr><th>Frame</th><th>Start (aa)</th><th>End (aa)</th><th>Length (aa)</th><th>Sequence (first 30)</th></tr></thead>
           <tbody>
             ${allOrfs.slice(0, 15).map(orf => `
               <tr>
                 <td style="font-weight:600;color:var(--accent-cyan);">${orf.frame}</td>
                 <td>${orf.start + 1}</td>
                 <td>${orf.end + 1}</td>
-                <td>${orf.length}</td>
+                <td>${orf.length} <span style="font-size:10px;color:var(--text-muted);">aa</span></td>
                 <td style="font-family:var(--font-mono);font-size:11px;">${orf.protein.substring(0, 30)}${orf.protein.length > 30 ? '...' : ''}</td>
               </tr>
             `).join('')}
           </tbody>
         </table>
+        ${allOrfs.length > 15 ? `<p style="font-size:11px;color:var(--text-muted);margin-top:8px;">Showing top 15 of ${allOrfs.length} ORFs.</p>` : ''}
       </div>
     `;
-    }
+  }
 
-    return `
+  return `
     <div class="panel active">
-      <div class="panel-header">
-        <h2>6-Frame Translation</h2>
-        <p>${escapeHtml(seq.name)} — showing ${displayLen > seqStr.length ? '' : 'first '}${displayLen} bp${displayLen < seqStr.length ? ` of ${seqStr.length} bp` : ''}</p>
+      <div class="panel-header" style="display:flex;justify-content:space-between;align-items:flex-end;">
+        <div>
+          <h2>6-Frame Translation</h2>
+          <p>${escapeHtml(seq.name)} — showing ${displayLen > seqStr.length ? '' : 'first '}${displayLen} bp</p>
+        </div>
+        <div>
+          <button class="btn btn-secondary" id="export-orfs-btn" ${allOrfs.length === 0 ? 'disabled' : ''}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Export All ORFs (FASTA)
+          </button>
+        </div>
       </div>
       <div class="panel-body">
-        <div class="stats-grid" style="margin-bottom:16px;">
-          <div class="stat-card"><div class="stat-title">Sequence Length</div><div class="stat-value">${seqStr.length}<span class="stat-unit">bp</span></div></div>
-          <div class="stat-card"><div class="stat-title">ORFs Found</div><div class="stat-value">${allOrfs.length}</div></div>
+        <div class="stats-grid" style="margin-bottom:24px;">
+          <div class="stat-card"><div class="stat-title">Sequence Displayed</div><div class="stat-value">${displayLen.toLocaleString()}<span class="stat-unit">bp</span></div></div>
+          <div class="stat-card"><div class="stat-title">Total ORFs Found</div><div class="stat-value">${allOrfs.length}</div></div>
           <div class="stat-card"><div class="stat-title">Longest ORF</div><div class="stat-value">${allOrfs.length > 0 ? allOrfs[0].length : 0}<span class="stat-unit">aa</span></div></div>
         </div>
         
-        <h3 style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text-secondary);">Forward Strand DNA</h3>
-        <div class="frame-sequence" style="margin-bottom:16px;">${dnaLine.substring(0, 3000)}</div>
-        
-        <div class="frame-divider"></div>
-        
-        <div class="frame-translation-container">
-          ${frameBlocks.slice(0, 3).join('<div class="frame-divider"></div>')}
-        </div>
-        
-        <div class="frame-divider" style="margin:16px 0;height:2px;background:var(--border-default);"></div>
-        
-        <h3 style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text-secondary);">Reverse Complement Frames</h3>
-        <div class="frame-translation-container">
-          ${frameBlocks.slice(3).join('<div class="frame-divider"></div>')}
+        <div style="background:var(--bg-elevated);border:1px solid var(--border-muted);border-radius:var(--radius-md);padding:16px;">
+            <h3 style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text-secondary);">Forward Strand DNA</h3>
+            <div class="frame-sequence" style="margin-bottom:16px;line-height:1.6;">${dnaLine}</div>
+            
+            <div style="margin:16px 0;height:1px;background:var(--border-muted);"></div>
+            
+            <div class="frame-translation-container">
+              ${frameBlocks.slice(0, 3).join('<div style="margin:8px 0;height:1px;background:var(--border-muted);opacity:0.5;"></div>')}
+            </div>
+            
+            <div style="margin:16px 0;height:2px;background:var(--border-default);"></div>
+            
+            <h3 style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text-secondary);">Reverse Complement Frames</h3>
+            <div class="frame-translation-container">
+              ${frameBlocks.slice(3).join('<div style="margin:8px 0;height:1px;background:var(--border-muted);opacity:0.5;"></div>')}
+            </div>
         </div>
         
         ${orfSummary}
         
-        <div style="margin-top:16px;padding:10px;background:var(--bg-elevated);border-radius:var(--radius-sm);font-size:11px;color:var(--text-muted);">
+        <div style="margin-top:24px;padding:12px 16px;background:var(--bg-tertiary);border:1px solid var(--border-muted);border-radius:var(--radius-sm);font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
           <strong>Legend:</strong> 
-          <span class="met-codon" style="margin:0 4px;">M</span> = Start codon (Met) &nbsp;
-          <span class="stop-codon" style="margin:0 4px;">*</span> = Stop codon &nbsp;
-          <span class="aa-hydrophobic" style="margin:0 4px;">Hydrophobic</span> &nbsp;
-          <span class="aa-polar" style="margin:0 4px;">Polar</span> &nbsp;
-          <span class="aa-positive" style="margin:0 4px;">Positive</span> &nbsp;
-          <span class="aa-negative" style="margin:0 4px;">Negative</span>
+          <span style="display:flex;align-items:center;gap:4px;"><span class="met-codon" style="padding:2px 4px;border-radius:2px;">M</span> Start (Met)</span>
+          <span style="display:flex;align-items:center;gap:4px;"><span class="stop-codon" style="padding:2px 4px;border-radius:2px;">*</span> Stop</span>
+          <span style="display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:12px;height:12px;background:rgba(0, 212, 232, 0.15);border-bottom:2px solid var(--accent-cyan);"></span> ORF Region Highlight</span>
         </div>
       </div>
     </div>
   `;
 }
 
+export function bindSixFrameEvents(seq) {
+  const exportBtn = document.getElementById('export-orfs-btn');
+  if (!exportBtn || !seq || seq.type === 'protein') return;
+
+  // Recalculate ORFs for export (so we aren't bound to visual display limits)
+  const seqStr = seq.sequence.toUpperCase();
+  const rcDna = reverseComplement(seqStr);
+
+  // We already do this logic above, but for export we run it on the FULL sequence
+  const allOrfs = [];
+
+  function findFullOrfs(dnaStr, frameLabel, direction) {
+    for (let f = 0; f < 3; f++) {
+      const protein = translate(dnaStr, f);
+      let inOrf = false, orfStart = 0;
+      for (let i = 0; i < protein.length; i++) {
+        if (protein[i] === 'M' && !inOrf) {
+          inOrf = true;
+          orfStart = i;
+        } else if (protein[i] === '*' && inOrf) {
+          const orfLen = i - orfStart;
+          if (orfLen >= 10) {
+            allOrfs.push({
+              frame: `${frameLabel}${f + 1}`,
+              length: orfLen,
+              protein: protein.substring(orfStart, i + 1),
+              startPos: orfStart + 1,
+              endPos: i + 1
+            });
+          }
+          inOrf = false;
+        }
+      }
+    }
+  }
+
+  findFullOrfs(seqStr, '+', 'forward');
+  findFullOrfs(rcDna, '-', 'reverse');
+
+  allOrfs.sort((a, b) => b.length - a.length);
+
+  exportBtn.addEventListener('click', () => {
+    if (allOrfs.length === 0) return;
+
+    let fasta = '';
+    allOrfs.forEach((o, i) => {
+      fasta += `>ORF_${i + 1}_${seq.name}_Frame${o.frame}_Len${o.length}\n`;
+      // Wrap at 80 chars
+      for (let j = 0; j < o.protein.length; j += 80) {
+        fasta += o.protein.substring(j, j + 80) + '\n';
+      }
+    });
+
+    const blob = new Blob([fasta], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${seq.name}_ORFs.fasta`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+}
+
 function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
