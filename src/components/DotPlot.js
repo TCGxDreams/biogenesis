@@ -92,7 +92,7 @@ export function computeDotPlot(seq1, seq2, windowSize = 10, threshold = 70) {
                 const y = (j / len2 * canvasSize).toFixed(1);
                 const w = Math.max(1, (windowSize / len1 * canvasSize)).toFixed(1);
                 const h = Math.max(1, (windowSize / len2 * canvasSize)).toFixed(1);
-                dots += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(6,182,212,${opacity.toFixed(2)})" />`;
+                dots += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="var(--accent-cyan)" opacity="${opacity.toFixed(2)}" />`;
             }
         }
     }
@@ -120,7 +120,7 @@ export function computeDotPlot(seq1, seq2, windowSize = 10, threshold = 70) {
     <div class="dotplot-canvas-wrap">
       <svg width="${canvasSize + 40}" height="${canvasSize + 30}" style="overflow:visible;">
         <g transform="translate(30, 0)">
-          <rect width="${canvasSize}" height="${canvasSize}" fill="#080a10" rx="2"/>
+          <rect width="${canvasSize}" height="${canvasSize}" fill="var(--bg-primary)" rx="2"/>
           ${dots}
           ${ticks}
           <text x="${canvasSize / 2}" y="${canvasSize + 28}" text-anchor="middle" font-size="11" fill="var(--text-secondary)">${escapeHtml(seq1.name)}</text>

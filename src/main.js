@@ -54,6 +54,7 @@ async function init() {
     state.sequences = [...SAMPLE_SEQUENCES];
   }
 
+  initTheme();
   renderFileTree();
   bindToolNav();
   bindToolbar();
@@ -1142,6 +1143,37 @@ function setStatus(msg) {
 function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ====== THEME SWITCHER ======
+function initTheme() {
+  const toggleBtn = document.getElementById('theme-toggle');
+  if (!toggleBtn) return;
+
+  // Resolve theme: localStorage -> URL query -> system preference -> default 'dark'
+  let theme = localStorage.getItem('theme');
+  if (!theme) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlTheme = urlParams.get('theme');
+    if (urlTheme === 'light' || urlTheme === 'dark') {
+      theme = urlTheme;
+    } else {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      theme = prefersDark ? 'dark' : 'light';
+    }
+  }
+
+  // Set initial theme
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem('theme', theme);
+
+  // Toggle on click
+  toggleBtn.addEventListener('click', () => {
+    const currentTheme = document.documentElement.dataset.theme;
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = newTheme;
+    localStorage.setItem('theme', newTheme);
+  });
 }
 
 // ====== BOOT ======

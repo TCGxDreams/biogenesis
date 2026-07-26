@@ -86,10 +86,10 @@ function buildMiniMap(seq, len) {
 
   let tracksHtml = '';
   if (seq.features && seq.features.length > 0) {
-    const featureColors = { 'gene': '#3fb950', 'CDS': '#58a6ff', 'promoter': '#f85149', 'misc_feature': '#e3b341', 'rep_origin': '#8b5cf6', 'terminator': '#f778ba' };
+    const featureColors = { 'gene': 'var(--feat-gene)', 'CDS': 'var(--feat-cds)', 'promoter': 'var(--feat-promoter)', 'misc_feature': 'var(--feat-misc)', 'rep_origin': 'var(--feat-rep-origin)', 'terminator': 'var(--feat-terminator)' };
 
     tracksHtml = seq.features.map(feat => {
-      const color = feat.color || featureColors[feat.type] || '#6e7681';
+      const color = feat.color || featureColors[feat.type] || 'var(--text-muted)';
       const leftPct = (feat.start / len * 100).toFixed(2);
       let widthPct = (Math.max(feat.end - feat.start, 1) / len * 100).toFixed(2);
       if (parseFloat(widthPct) < 0.5) widthPct = '0.5'; // ensure visibility
@@ -235,15 +235,15 @@ export function bindSequenceViewerEvents(seq) {
 
 function buildAnnotations(features, len) {
   const featureColors = {
-    'gene': '#3fb950', 'CDS': '#58a6ff', 'promoter': '#f85149',
-    'misc_feature': '#e3b341', 'rep_origin': '#8b5cf6', 'terminator': '#f778ba'
+    'gene': 'var(--feat-gene)', 'CDS': 'var(--feat-cds)', 'promoter': 'var(--feat-promoter)',
+    'misc_feature': 'var(--feat-misc)', 'rep_origin': 'var(--feat-rep-origin)', 'terminator': 'var(--feat-terminator)'
   };
 
   const visibleFeatures = features.slice(0, 50);
   let tracks = '';
 
   for (const feat of visibleFeatures) {
-    const color = feat.color || featureColors[feat.type] || '#6e7681';
+    const color = feat.color || featureColors[feat.type] || 'var(--text-muted)';
     const leftPct = (feat.start / len * 100).toFixed(2);
     const widthPct = (Math.max(feat.end - feat.start, 1) / len * 100).toFixed(2);
     const label = feat.name || feat.qualifiers?.gene || feat.qualifiers?.product || feat.type;

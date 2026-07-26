@@ -258,9 +258,9 @@ export function renderTreeSVG(tree, width = 700, height = 400) {
     const dots = [];
 
     // Colors derived from BioGenesis premium theme
-    const strokeColor = "#00d4e8";
+    const strokeColor = "var(--accent-cyan)";
     const labelColor = "var(--text-primary)";
-    const nodeColor = "#0a2463";
+    const nodeColor = "var(--bg-primary)";
 
     function layout(node, x = 0) {
         if (!node.children || node.children.length === 0) {

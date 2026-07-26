@@ -13,9 +13,9 @@ export function renderPlasmidMap(seq) {
   const isCircular = seq.circular === true || seq.topology === 'circular';
 
   const featureColors = {
-    'gene': '#3fb950', 'CDS': '#58a6ff', 'promoter': '#f85149',
-    'misc_feature': '#e3b341', 'rep_origin': '#8b5cf6', 'terminator': '#f778ba',
-    'primer_bind': '#d29922', 'regulatory': '#ec4899', 'exon': '#06b6d4'
+    'gene': 'var(--feat-gene)', 'CDS': 'var(--feat-cds)', 'promoter': 'var(--feat-promoter)',
+    'misc_feature': 'var(--feat-misc)', 'rep_origin': 'var(--feat-rep-origin)', 'terminator': 'var(--feat-terminator)',
+    'primer_bind': 'var(--feat-primer-bind)', 'regulatory': 'var(--feat-regulatory)', 'exon': 'var(--feat-exon)'
   };
 
   // Calculate Unique Restriction Sites
@@ -37,9 +37,9 @@ export function renderPlasmidMap(seq) {
     <defs>
       <!-- Premium metallic gradient for backbone -->
       <linearGradient id="plasmid-backbone-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#30363d"/>
-        <stop offset="50%" stop-color="#484f58"/>
-        <stop offset="100%" stop-color="#21262d"/>
+        <stop offset="0%" stop-color="var(--border-default)"/>
+        <stop offset="50%" stop-color="var(--text-muted)"/>
+        <stop offset="100%" stop-color="var(--border-muted)"/>
       </linearGradient>
       
       <!-- Feature shadow -->
@@ -67,7 +67,7 @@ export function renderPlasmidMap(seq) {
     const y1 = cy + Math.sin(angle) * (radius - 8);
     const x2 = cx + Math.cos(angle) * (radius + 8);
     const y2 = cy + Math.sin(angle) * (radius + 8);
-    svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#6e7681" stroke-width="1.5"/>`;
+    svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--border-default)" stroke-width="1.5"/>`;
 
     // Label every other tick or all if small
     if (i % (tickInterval * 2) === 0 || i === 0 || tickInterval >= 1000) {
@@ -175,11 +175,11 @@ export function renderPlasmidMap(seq) {
         <h4 style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">Feature List</h4>
         <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:8px;">
         ${features.map(feat => {
-      const color = featureColors[feat.type] || '#6e7681';
+      const color = featureColors[feat.type] || 'var(--text-muted)';
       const label = feat.qualifiers?.gene || feat.qualifiers?.product || feat.type;
       return `
-            <div style="display:flex;align-items:center;padding:6px 10px;background:var(--bg-tertiary);border:1px solid var(--border-muted);border-radius:var(--radius-sm);">
-                <span style="width:10px;height:10px;border-radius:50%;background:${color};margin-right:10px;box-shadow:0 0 6px ${color}80;"></span>
+             <div style="display:flex;align-items:center;padding:6px 10px;background:var(--bg-tertiary);border:1px solid var(--border-muted);border-radius:var(--radius-sm);">
+                 <span style="width:10px;height:10px;border-radius:50%;background:${color};margin-right:10px;"></span>
                 <div style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                   <span style="font-size:12px;font-weight:600;color:var(--text-primary);margin-right:6px;">${escapeHtml(label)}</span>
                   <span style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono);">${feat.start + 1}..${feat.end}</span>

@@ -21,8 +21,7 @@
     <header id="toolbar">
       <div class="toolbar-left">
         <div class="app-logo">
-          <img src="/src/assets/logo.svg" width="30" height="30" alt="BioGenesis Logo"
-            style="filter:drop-shadow(0 0 6px rgba(0,229,255,0.4));" />
+          <img class="logo-img" src="/src/assets/logo.svg" width="30" height="30" alt="BioGenesis Logo" />
           <span class="app-title">BioGenesis</span>
         </div>
         <div class="toolbar-divider"></div>
@@ -107,6 +106,10 @@
           </svg>
           <input type="text" id="global-search" placeholder="Search sequences..." />
         </div>
+        <button id="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle Light/Dark Theme">
+          <svg class="moon-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+          <svg class="sun-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg>
+        </button>
       </div>
     </header>
 

@@ -67,15 +67,15 @@ function buildLinearMapSVG(seq, annotations, cutSites) {
 
   // Color palette for feature types
   const typeColors = {
-    'gene': '#3fb950',
-    'CDS': '#58a6ff',
-    'promoter': '#f85149',
-    'terminator': '#f85149',
-    'rep_origin': '#8b5cf6',
-    'misc_feature': '#e3b341',
-    'regulatory': '#ec4899',
-    'primer_bind': '#d29922',
-    'exon': '#06b6d4'
+    'gene': 'var(--feat-gene)',
+    'CDS': 'var(--feat-cds)',
+    'promoter': 'var(--feat-promoter)',
+    'terminator': 'var(--feat-terminator)',
+    'rep_origin': 'var(--feat-rep-origin)',
+    'misc_feature': 'var(--feat-misc)',
+    'regulatory': 'var(--feat-regulatory)',
+    'primer_bind': 'var(--feat-primer-bind)',
+    'exon': 'var(--feat-exon)'
   };
 
   let svg = `<div style="min-width:${width}px;">
@@ -97,7 +97,7 @@ function buildLinearMapSVG(seq, annotations, cutSites) {
   }
 
   // --- Backbone ---
-  svg += `<line x1="${margin}" y1="${backboneY}" x2="${margin + trackW}" y2="${backboneY}" stroke="#484f58" stroke-width="4" stroke-linecap="round"/>`;
+  svg += `<line x1="${margin}" y1="${backboneY}" x2="${margin + trackW}" y2="${backboneY}" stroke="var(--border-default)" stroke-width="4" stroke-linecap="round"/>`;
   if (seq.topology === 'circular') {
     svg += `<circle cx="${margin}" cy="${backboneY}" r="4" fill="#6e7681"/>`;
     svg += `<circle cx="${margin + trackW}" cy="${backboneY}" r="4" fill="#6e7681"/>`;
