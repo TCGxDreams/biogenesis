@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  frontend:
+    name: Frontend (Node 20)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+  backend:
+    name: Backend syntax gate (Python 3.11)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Deliberately no `pip install -r backend/requirements.txt` and no model
+      # load: pulling PyTorch makes the job slow for no added signal. This is a
+      # syntax gate only — see AGENT_TASKS.md T0.3.
+      - name: Parse every backend Python file
+        run: |
+          python - <<'PY'
+          import ast, pathlib, sys
+
+          failures = []
+          files = sorted(pathlib.Path('backend').rglob('*.py'))
+          if not files:
+              sys.exit('No Python files found under backend/')
+
+          for path in files:
+              try:
+                  ast.parse(path.read_text(encoding='utf-8'), filename=str(path))
+              except SyntaxError as exc:
+                  failures.append(f'{path}:{exc.lineno}: {exc.msg}')
+
+          print(f'Parsed {len(files)} file(s).')
+          if failures:
+              print('\n'.join(failures))
+              sys.exit(1)
+          PY

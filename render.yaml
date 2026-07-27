@@ -3,11 +3,25 @@ services:
   - type: web
     name: biogenesis-backend
     env: python
-    plan: free          # free tier: 512MB RAM, spins down after 15min inactivity
+    plan: free # free tier: 512MB RAM, spins down after 15min inactivity
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: python server.py
     envVars:
       - key: PORT
         value: 8000
+      # Browser origins allowed to call the API, comma separated. Without this
+      # the API accepts only http://localhost:5173.
+      - key: ALLOWED_ORIGINS
+        value: http://localhost:5173
+      # Input limits. The free tier has 512 MB of RAM and the model is resident,
+      # so an unbounded upload or an unthrottled loop takes the instance down.
+      - key: MAX_PDB_BYTES
+        value: 5242880 # 5 MB
+      - key: MAX_TOP_N
+        value: 1000
+      - key: RATE_LIMIT_REQUESTS
+        value: 10
+      - key: RATE_LIMIT_WINDOW_SECONDS
+        value: 60
     healthCheckPath: /health

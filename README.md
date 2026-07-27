@@ -25,18 +25,21 @@
 ## ✨ Features
 
 ### 📁 Sequence Management
+
 - Import/export FASTA and GenBank files
 - 20+ built-in sample sequences (plasmids, genes, proteins, RNA)
 - **NCBI Fetch** — search and import sequences directly from NCBI databases (DNA/Protein)
 - Scrollable document browser with real-time search filter
 
 ### 🔬 Viewer & Editor
+
 - **Sequence Viewer** — color-coded nucleotide/amino acid display with chunked rendering for large sequences
 - **Sequence Editor** — edit, insert, delete, and annotate sequences
 - **Linear Map** — linear genome/gene map with annotated features
 - **Plasmid Map** — circular plasmid map visualization
 
 ### 📊 Analysis Tools
+
 - **Sequence Alignment** — Needleman-Wunsch (global) & Smith-Waterman (local) pairwise alignment
 - **Dot Plot** — visual sequence comparison matrix
 - **Phylogenetic Tree** — UPGMA distance-based phylogeny with interactive dendrograms
@@ -45,22 +48,24 @@
 - **Sequence Properties** — sliding window GC, hydrophobicity, charge, flexibility plots
 
 ### 🧪 Molecular Biology
+
 - **Restriction Analysis** — digest simulation with 20+ restriction enzymes
 - **Primer Design** — automated primer pair design with Tm calculation
 - **6-Frame Translation** — all reading frame translations with start/stop codon display
 - **Codon Optimization** — codon usage analysis and optimization for host expression
 
 ### 🔬 3D Structure & AI Binding Site Prediction
+
 - **3D Protein Viewer** — interactive molecular visualization powered by [3Dmol.js](https://3dmol.csb.pitt.edu/)
   - **RCSB PDB** — load experimental structures from the Protein Data Bank
   - **AlphaFold DB** — load AI-predicted structures via UniProt accession
   - Style controls: Cartoon, Stick, Space-Fill, Wireframe, Ball & Cross
   - Color schemes: Rainbow, Chain, Secondary Structure, Residue, Confidence (pLDDT)
-- **🧠 GGNN2025 Binding Site Prediction** *(requires Python backend)*
+- **🧠 GGNN2025 Binding Site Prediction** _(requires Python backend)_
   - Predict ligand-binding residues using a Geometric Graph Neural Network
   - Configurable confidence threshold (0.20–0.95), top-N results, and color modes
   - **Heatmap** (yellow→orange→red gradient by confidence), **Flat red**, **Pocket clusters** coloring
-  - Based on the paper: *GGNN 2025: A Lightweight Geometric GNN for Protein-Ligand Binding Site Prediction*
+  - Based on the paper: _GGNN 2025: A Lightweight Geometric GNN for Protein-Ligand Binding Site Prediction_
 
 ---
 
@@ -69,25 +74,28 @@
 BioGenesis integrates **GGNN2025**, a lightweight Geometric Graph Neural Network (276K parameters) for protein-ligand binding site prediction.
 
 ### Key Stats
-| Metric | Value |
-|--------|-------|
-| AUC (combined test) | **0.949** |
-| Parameters | **276K** (36× smaller than PLM-based methods) |
-| Benchmark datasets | 9 (COACH420, Holo4k, PDBbind, scPDB, ...) |
-| Loss function | Combined (0.3 BCE + 0.7 Dice) |
-| Architecture | GATv2 + Geometric Edge Encoding |
+
+| Metric              | Value                                         |
+| ------------------- | --------------------------------------------- |
+| AUC (combined test) | **0.949**                                     |
+| Parameters          | **276K** (36× smaller than PLM-based methods) |
+| Benchmark datasets  | 9 (COACH420, Holo4k, PDBbind, scPDB, ...)     |
+| Loss function       | Combined (0.3 BCE + 0.7 Dice)                 |
+| Architecture        | GATv2 + Geometric Edge Encoding               |
 
 ### Paper & Code
+
 - 📄 **Paper (Zenodo):** [https://doi.org/10.5281/zenodo.18061054](https://doi.org/10.5281/zenodo.18061054)
 - 💻 **GGNN2025 Repository:** [https://github.com/TCGxBill/GGNN2025](https://github.com/TCGxBill/GGNN2025)
 
 ### Citation
+
 If you use GGNN2025 in your research, please cite:
 
 ```bibtex
 @software{nguyen_vu_trong_nhan_2025_18061054,
   author       = {Nguyen Vu, Trong Nhan},
-  title        = {GGNN 2025: A Lightweight Geometric Graph Neural Network 
+  title        = {GGNN 2025: A Lightweight Geometric Graph Neural Network
                   for Protein-Ligand Binding Site Prediction},
   year         = 2025,
   publisher    = {Zenodo},
@@ -97,6 +105,7 @@ If you use GGNN2025 in your research, please cite:
 ```
 
 ### Running the Backend
+
 ```bash
 # Install dependencies
 pip install -r backend/requirements.txt
@@ -112,6 +121,7 @@ lsof -ti:8000 | xargs kill -9 2>/dev/null || true
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - [Node.js](https://nodejs.org/) v18+
 - npm or yarn
 - Python 3.9+ (optional — only for GGNN2025 binding site prediction)
@@ -120,8 +130,8 @@ lsof -ti:8000 | xargs kill -9 2>/dev/null || true
 
 ```bash
 # Clone the repository
-git clone https://github.com/TCGxBill/BioGenesis.git
-cd BioGenesis
+git clone https://github.com/TCGxDreams/biogenesis.git
+cd biogenesis
 
 # Install frontend dependencies
 npm install
@@ -133,10 +143,69 @@ npm run dev
 Open `http://localhost:5173` in your browser.
 
 ### Build for Production
+
 ```bash
 npm run build
 npm run preview
 ```
+
+### Quality checks
+
+```bash
+npm run lint          # ESLint 9 (flat config)
+npm run typecheck     # tsc --noEmit over JSDoc types
+npm run format:check  # Prettier
+npm run test          # Vitest — src/utils, src/core, src/app and tools/
+npm run test:coverage # Vitest + v8 coverage report
+```
+
+Backend tests mock the model, so they never load the 3.4 MB checkpoint:
+
+```bash
+pip install -r backend/requirements-dev.txt
+pytest backend/tests -m "not slow"
+```
+
+---
+
+## 🔌 Headless API
+
+Every analysis in BioGenesis is also callable without a browser. The domain
+logic lives in `src/core/`, and `tools/` wraps it in two surfaces that share one
+registry — so the CLI, the HTTP API and the UI can never drift apart.
+
+**CLI** — JSON in on stdin, JSON out on stdout:
+
+```bash
+echo '{"tool":"findMotifs","args":{"sequence":"AAAGAATTCAAA","pattern":"GAATTC"}}' | npm run tool --silent
+```
+
+```bash
+node tools/run.js --list     # the 30 available tools
+node tools/run.js --schema   # full parameter schema as JSON
+```
+
+Exit codes: `0` success, `1` a domain error (the JSON carries a `BioError`
+code), `2` a malformed request.
+
+**HTTP** — the same registry over `node:http`, with the same limits and CORS
+policy as the Python backend:
+
+```bash
+npm run serve:core   # listens on :8787, override with PORT
+
+curl -X POST localhost:8787/tools/computeSequenceStats \
+  -H 'Content-Type: application/json' \
+  -d '{"sequence":"ATGAAATTTGGGCCCTAA","type":"dna"}'
+```
+
+| Route               | Purpose                          |
+| ------------------- | -------------------------------- |
+| `GET /health`       | Liveness                         |
+| `GET /tools`        | Names and summaries              |
+| `GET /schema`       | Full parameter schema            |
+| `POST /run`         | `{"tool": "...", "args": {...}}` |
+| `POST /tools/:name` | Args as the body                 |
 
 ---
 
@@ -189,17 +258,17 @@ BioGenesis/
 
 ## 🛠 Tech Stack
 
-| Technology | Purpose |
-|---|---|
-| **Vanilla JS (ES2024)** | Core application logic |
-| **HTML5 Canvas** | Plasmid maps, dot plots, property plots |
-| **CSS3** | Custom dark theme design system |
-| **Vite 7** | Dev server & build tool |
-| **3Dmol.js** | Interactive 3D molecular visualization |
-| **FastAPI + PyTorch** | GGNN2025 binding site prediction backend |
-| **NCBI E-Utilities** | Sequence fetching from NCBI databases |
-| **AlphaFold DB** | AI-predicted protein structures |
-| **RCSB PDB** | Experimental protein structures |
+| Technology              | Purpose                                  |
+| ----------------------- | ---------------------------------------- |
+| **Vanilla JS (ES2024)** | Core application logic                   |
+| **HTML5 Canvas**        | Plasmid maps, dot plots, property plots  |
+| **CSS3**                | Custom dark theme design system          |
+| **Vite 7**              | Dev server & build tool                  |
+| **3Dmol.js**            | Interactive 3D molecular visualization   |
+| **FastAPI + PyTorch**   | GGNN2025 binding site prediction backend |
+| **NCBI E-Utilities**    | Sequence fetching from NCBI databases    |
+| **AlphaFold DB**        | AI-predicted protein structures          |
+| **RCSB PDB**            | Experimental protein structures          |
 
 ---
 
@@ -208,16 +277,19 @@ BioGenesis/
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for full details.
 
 ### What the MIT License Allows ✅
+
 - **Commercial use** — You can use this in commercial products
 - **Modification** — You can change the source code
 - **Distribution** — You can distribute your copy
 - **Private use** — You can use and modify privately
 
 ### What You Must Do 📋
+
 - **Include copyright** — Keep the original copyright notice in all copies
 - **Include license** — Include the MIT License text with any substantial copy
 
 ### What Is Not Covered ⚠️
+
 - **Liability** — No warranty is provided; use at your own risk
 - **GGNN2025 model weights** — The trained model checkpoints are covered by separate academic use terms (see [GGNN2025 repo](https://github.com/TCGxBill/GGNN2025))
 

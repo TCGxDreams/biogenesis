@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Test / tooling output
+coverage
+.vitest
+.eslintcache
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -37,3 +42,5 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+.vercel
+.env*.local

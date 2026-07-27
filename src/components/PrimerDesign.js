@@ -1,8 +1,12 @@
+// @ts-nocheck -- TODO(T4): this layer is untyped until main.js is decomposed
+//                and the components are rewired onto the typed core contract.
 // ============================================
 // BioGenesis — Primer Design Component v2
 // ============================================
 
-import { gcContent, calculateTmNN, complement, reverseComplement, getNucleotideClass } from '../utils/bioUtils.js';
+import { getNucleotideClass } from '../utils/bioUtils.js';
+import { designPrimers } from '../core/primer.js';
+import { BioError } from '../core/errors.js';
 
 export function renderPrimerDesign(seq) {
   if (seq.type === 'protein') {
@@ -71,8 +75,24 @@ export function renderPrimerDesign(seq) {
   `;
 }
 
+/**
+ * Render the primer design results. All computation lives in
+ * `src/core/primer.js`; this function only draws the returned pairs.
+ *
+ * @param {string} seqStr Template sequence.
+ * @param {Object} settings See `designPrimers`.
+ * @returns {string} HTML
+ */
 export function renderPrimerResults(seqStr, settings) {
-  const primers = designPrimerPairs(seqStr, settings);
+  let primers;
+  try {
+    primers = designPrimers(seqStr, settings).pairs;
+  } catch (e) {
+    if (e instanceof BioError) {
+      return `<div class="empty-state"><p class="empty-state-text" style="color:var(--accent-red);">${escapeHtml(e.message)}</p></div>`;
+    }
+    throw e;
+  }
 
   if (primers.length === 0) {
     return `<div class="empty-state">
@@ -188,99 +208,15 @@ function renderBindingMap(fwd, rev, len) {
     `;
 }
 
+/**
+ * Kept for the CSV export path in main.js. Delegates to `src/core/primer.js`.
+ *
+ * @param {string} seq
+ * @param {Object} cfg
+ * @returns {import('../core/primer.js').PrimerPair[]}
+ */
 export function designPrimerPairs(seq, cfg) {
-  const upper = seq.toUpperCase();
-  const len = upper.length;
-
-  const startObj = cfg.targetStart ? Math.max(0, cfg.targetStart - 1 - parseInt(cfg.targetStart > 0 ? 50 : 0)) : 0;
-  const endObj = cfg.targetEnd ? Math.min(len, cfg.targetEnd + parseInt(cfg.targetEnd < len ? 50 : 0)) : len;
-
-  const fwds = [];
-  const revs = [];
-
-  // Find all acceptable forward primers in the 5' flank
-  for (let pos = startObj; pos < Math.min(len, startObj + 300); pos++) {
-    for (let pLen = cfg.minLen; pLen <= cfg.maxLen; pLen++) {
-      if (pos + pLen > len) continue;
-      const pSeq = upper.substring(pos, pos + pLen);
-      const tm = calculateTmNN(pSeq);
-      if (tm >= cfg.minTm && tm <= cfg.maxTm) {
-        const gc = gcContent(pSeq);
-        if (gc >= 40 && gc <= 60 && !checkHairpin(pSeq)) {
-          fwds.push({ sequence: pSeq, start: pos, end: pos + pLen, tm, gc, direction: 'fwd', hairpin: false });
-          break; // Just one decent primer per start position
-        }
-      }
-    }
-  }
-
-  // Find all acceptable rev primers in the 3' flank
-  const revStartSearch = cfg.targetEnd ? Math.max(0, cfg.targetEnd - 50) : Math.max(0, len - 300);
-  for (let pos = endObj; pos > revStartSearch; pos--) {
-    for (let pLen = cfg.minLen; pLen <= cfg.maxLen; pLen++) {
-      if (pos - pLen < 0) continue;
-      const pSeqRaw = upper.substring(pos - pLen, pos);
-      const pSeq = reverseComplement(pSeqRaw);
-      const tm = calculateTmNN(pSeq);
-      if (tm >= cfg.minTm && tm <= cfg.maxTm) {
-        const gc = gcContent(pSeq);
-        if (gc >= 40 && gc <= 60 && !checkHairpin(pSeq)) {
-          revs.push({ sequence: pSeq, start: pos - pLen, end: pos, tm, gc, direction: 'rev', hairpin: false });
-          break;
-        }
-      }
-    }
-  }
-
-  // Default fallbacks if empty (force some primers)
-  if (fwds.length === 0 && len >= cfg.minLen) {
-    const fallSeq = upper.substring(0, cfg.minLen);
-    fwds.push({ sequence: fallSeq, start: 0, end: cfg.minLen, tm: calculateTmNN(fallSeq), gc: gcContent(fallSeq), hairpin: checkHairpin(fallSeq) });
-  }
-  if (revs.length === 0 && len >= cfg.minLen) {
-    const pSeq = reverseComplement(upper.substring(len - cfg.minLen, len));
-    revs.push({ sequence: pSeq, start: len - cfg.minLen, end: len, tm: calculateTmNN(pSeq), gc: gcContent(pSeq), hairpin: checkHairpin(pSeq) });
-  }
-
-  const pairs = [];
-  // Match them up (up to 5 best pairs logic)
-  for (const f of fwds) {
-    for (const r of revs) {
-      if (r.start <= f.end + 10) continue; // Minimum amplicon size constraint
-      const tmDiff = Math.abs(f.tm - r.tm);
-      if (tmDiff <= 5) {
-        pairs.push({
-          fwd: f, rev: r,
-          score: tmDiff + Math.abs(50 - f.gc) * 0.1 + Math.abs(50 - r.gc) * 0.1, // Lower is better
-          heterodimer: checkHairpin(f.sequence) || checkHairpin(r.sequence) // simplified dimer check
-        });
-      }
-    }
-  }
-
-  // Sort by score (best pairs first)
-  pairs.sort((a, b) => a.score - b.score);
-
-  // Return top 5
-  return pairs.slice(0, 5);
-}
-
-function checkHairpin(seq) {
-  const len = seq.length;
-  if (len < 8) return false;
-  for (let i = 0; i < len - 6; i++) {
-    for (let j = i + 4; j < len - 2; j++) {
-      let matches = 0;
-      for (let k = 0; k < 3; k++) if (isComplement(seq[i + k], seq[j + 2 - k])) matches++;
-      if (matches >= 3) return true;
-    }
-  }
-  return false;
-}
-
-function isComplement(a, b) {
-  const pairs = { 'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C' };
-  return pairs[a.toUpperCase()] === b.toUpperCase();
+  return designPrimers(seq, cfg).pairs;
 }
 
 function colorCodeDNA(seq) {

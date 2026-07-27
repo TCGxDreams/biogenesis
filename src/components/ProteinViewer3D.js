@@ -1,9 +1,18 @@
+// @ts-nocheck -- TODO(T4): this layer is untyped until main.js is decomposed
+//                and the components are rewired onto the typed core contract.
 // ============================================
 // BioGenesis — 3D Protein Structure Viewer
 // Uses 3Dmol.js — supports RCSB PDB + AlphaFold DB
 // ============================================
 
 import * as $3Dmol from '3dmol';
+
+/**
+ * Largest PDB payload the prediction service accepts, mirroring MAX_PDB_BYTES
+ * in backend/server.py. Kept here so an oversized structure is rejected before
+ * it is uploaded.
+ */
+const MAX_PDB_BYTES = 5 * 1024 * 1024;
 
 // Known PDB IDs for demo proteins
 const KNOWN_PDBS = {
@@ -272,6 +281,17 @@ export function bindProteinViewerEvents(seq) {
     </span>`;
 
     try {
+      // Mirror the backend's MAX_PDB_BYTES. Without this the server rejects on
+      // Content-Length and closes the connection mid-upload, which surfaces in
+      // the browser as an opaque "Failed to fetch".
+      const payloadBytes = new Blob([currentPdbData]).size;
+      if (payloadBytes > MAX_PDB_BYTES) {
+        throw new Error(
+          `This structure is ${(payloadBytes / 1024 / 1024).toFixed(1)} MB, above the ` +
+          `${(MAX_PDB_BYTES / 1024 / 1024).toFixed(0)} MB limit of the prediction service.`
+        );
+      }
+
       const formData = new FormData();
       formData.append('pdb_data', currentPdbData);
       formData.append('threshold', threshold.toString());
@@ -283,11 +303,11 @@ export function bindProteinViewerEvents(seq) {
         body: formData
       });
 
-      const data = await res.json();
-
-      if (!res.ok || data.error) {
-        throw new Error(data.error || 'Prediction failed');
+      if (!res.ok) {
+        throw new Error(await describePredictFailure(res));
       }
+
+      const data = await res.json();
 
       if (data.binding_sites && data.binding_sites.length > 0) {
         let sites = data.binding_sites;
@@ -331,7 +351,15 @@ export function bindProteinViewerEvents(seq) {
       }
 
     } catch (err) {
-      ggnnResults.innerHTML = `<span style="color:#ef4444;"><b>Error:</b> ${err.message}.<br/><br/><i>Make sure the backend is running: <code>python backend/server.py</code></i></span>`;
+      // A TypeError from fetch means the request never got a response; anything
+      // else is the backend telling us what went wrong, so the "is it running?"
+      // hint would only be misleading.
+      const unreachable = err instanceof TypeError;
+      const hint = unreachable
+        ? '<br/><br/><i>Make sure the backend is running: <code>python backend/server.py</code></i>'
+        : '';
+      const message = unreachable ? 'Could not reach the prediction service.' : err.message;
+      ggnnResults.innerHTML = `<span style="color:#ef4444;"><b>Error:</b> ${message}${hint}</span>`;
     } finally {
       predictBtn.disabled = false;
       predictBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg> Run Prediction';
@@ -605,6 +633,49 @@ async function fetchWithTimeout(url, timeoutMs = 15000) {
 // ====== BINDING SITE VISUALIZATION ======
 
 // Map [0,1] confidence level to RRGGBB color (yellow → orange → red)
+/**
+ * Turn a failed /predict response into a message worth showing.
+ *
+ * The backend signals failure with an HTTP status and a JSON `detail` (see
+ * backend/server.py), so the status decides the wording and `detail` supplies
+ * the specifics.
+ *
+ * @param {Response} res
+ * @returns {Promise<string>}
+ */
+async function describePredictFailure(res) {
+  let detail = '';
+  try {
+    const body = await res.json();
+    detail = body?.detail ?? body?.error ?? '';
+    if (Array.isArray(detail)) {
+      // FastAPI validation errors arrive as a list of {loc, msg}.
+      detail = detail.map(d => d.msg || JSON.stringify(d)).join('; ');
+    }
+  } catch {
+    detail = await res.text().catch(() => '');
+  }
+
+  switch (res.status) {
+    case 400:
+      return detail || 'The structure could not be parsed. Check that it is a protein PDB.';
+    case 413:
+      return detail || 'This structure is too large for the prediction service.';
+    case 422:
+      return detail || 'The prediction settings are out of range.';
+    case 429:
+      return detail || 'Too many prediction requests. Wait a moment and try again.';
+    case 500:
+      return detail || 'The prediction service failed while running the model.';
+    case 502:
+    case 503:
+    case 504:
+      return 'The prediction service is unavailable. It may be starting up — try again shortly.';
+    default:
+      return detail || `Prediction failed (HTTP ${res.status}).`;
+  }
+}
+
 function confidenceColor(pct) {
   // pct: 0 = low confidence (at threshold), 1 = highest confidence
   if (pct < 0.5) {

@@ -1,0 +1,232 @@
+/* ============================================
+   BioGenesis — tokens
+   Design tokens. Every custom property both themes set; nothing else.
+   ============================================ */
+
+/* CSS Variables */
+:root {
+  /* Default light theme (using Nguyễn Vũ Trọng Nhân portfolio light theme colors) */
+  --bg-primary: #fafbfd; /* --bg */
+  --bg-secondary: #eef4fa; /* --bg-2 */
+  --bg-tertiary: #e2edf7; /* --bg-3 */
+  --bg-elevated: #ffffff; /* --white */
+  --bg-hover: #c6dff3; /* hover in light */
+  --bg-active: #b2d5f0;
+  --bg-glass: rgba(238, 244, 250, 0.85);
+
+  /* Borders */
+  --border-default: rgba(10, 36, 64, 0.15); /* --line */
+  --border-muted: rgba(10, 36, 64, 0.08); /* --line-soft */
+  --border-accent: rgba(54, 105, 158, 0.3); /* --celeste-ink faint */
+
+  /* Text */
+  --text-primary: #0a2440; /* --ink */
+  --text-secondary: #2c4c6e; /* --ink-2 */
+  --text-muted: #5c7690; /* --ink-faint */
+  --text-accent: #3d7ab5; /* --celeste-deep / blue */
+
+  /* Accents */
+  --accent-cyan: #3d7ab5; /* celeste-deep in light */
+  --accent-teal: #36699e;
+  --accent-blue: #3d7ab5;
+  --accent-purple: #7c4dff;
+  --accent-green: #2e7d32;
+  --accent-red: #c62828;
+  --accent-orange: #b8912f; /* gold */
+  --accent-pink: #d81b60;
+  --accent-yellow: #f9a825;
+
+  /* Nucleotide colors */
+  --nt-a: #2e7d32;
+  --nt-t: #c62828;
+  --nt-c: #3d7ab5;
+  --nt-g: #b8912f;
+  --nt-u: #d81b60;
+
+  /* Amino acid property colors */
+  --aa-hydrophobic: #b8912f;
+  --aa-polar: #2e7d32;
+  --aa-charged-pos: #3d7ab5;
+  --aa-charged-neg: #d81b60;
+  --aa-special: #f9a825;
+
+  /* Feature tracks */
+  --feat-gene: var(--accent-green);
+  --feat-cds: var(--accent-blue);
+  --feat-promoter: var(--accent-red);
+  --feat-terminator: var(--accent-red);
+  --feat-rep-origin: var(--accent-purple);
+  --feat-misc: var(--accent-orange);
+  --feat-regulatory: var(--accent-pink);
+  --feat-primer-bind: var(--accent-orange);
+  --feat-exon: var(--accent-cyan);
+
+  /* Gradients */
+  --gradient-brand: linear-gradient(135deg, #3d7ab5 0%, #7c4dff 100%);
+  --gradient-accent: linear-gradient(135deg, #3d7ab5 0%, #7c4dff 100%);
+  --gradient-warm: linear-gradient(135deg, #c62828 0%, #b8912f 100%);
+  --gradient-cool: linear-gradient(135deg, #3d7ab5 0%, #2e7d32 100%);
+  --gradient-glow: radial-gradient(
+    ellipse at 50% 0%,
+    rgba(107, 167, 221, 0.15) 0%,
+    transparent 70%
+  );
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(10, 36, 64, 0.08);
+  --shadow-md: 0 4px 12px rgba(10, 36, 64, 0.08);
+  --shadow-lg: 0 8px 24px rgba(10, 36, 64, 0.12);
+  --shadow-glow: 0 0 16px rgba(107, 167, 221, 0.25);
+  --shadow-glow-sm: 0 0 8px rgba(107, 167, 221, 0.15);
+  --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  /* Glow levels */
+  --glow-faint: rgba(61, 122, 181, 0.06);
+  --glow-medium: rgba(61, 122, 181, 0.15);
+  --glow-strong: rgba(61, 122, 181, 0.4);
+
+  /* Border radii */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Transitions */
+  --transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 380ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Layout */
+  --toolbar-height: 48px;
+  --sidebar-width: 260px;
+  --statusbar-height: 28px;
+  --tab-height: 36px;
+}
+
+:root[data-theme='dark'] {
+  /* Dark theme (using Nguyễn Vũ Trọng Nhân portfolio dark theme colors) */
+  --bg-primary: #071a2e; /* --bg */
+  --bg-secondary: #0b2238; /* --bg-2 */
+  --bg-tertiary: #123049; /* --bg-3 */
+  --bg-elevated: #0f2740; /* --white */
+  --bg-hover: #1b3d5c; /* hover in dark */
+  --bg-active: #234e75;
+  --bg-glass: rgba(11, 34, 56, 0.85);
+
+  /* Borders */
+  --border-default: rgba(230, 240, 251, 0.14); /* --line */
+  --border-muted: rgba(230, 240, 251, 0.07); /* --line-soft */
+  --border-accent: rgba(143, 196, 238, 0.25);
+
+  /* Text */
+  --text-primary: #eaf2fb; /* --ink */
+  --text-secondary: #c0d3e6; /* --ink-2 */
+  --text-muted: #9db4c9; /* --ink-faint */
+  --text-accent: #8fc4ee; /* --celeste-deep / blue */
+
+  /* Accents */
+  --accent-cyan: #8fc4ee;
+  --accent-teal: #8fc4ee;
+  --accent-blue: #8fc4ee;
+  --accent-purple: #b388ff;
+  --accent-green: #81c784;
+  --accent-red: #e57373;
+  --accent-orange: #d8ab4a; /* gold */
+  --accent-pink: #f06292;
+  --accent-yellow: #ffd54f;
+
+  /* Nucleotide colors */
+  --nt-a: #81c784;
+  --nt-t: #e57373;
+  --nt-c: #8fc4ee;
+  --nt-g: #d8ab4a;
+  --nt-u: #f06292;
+
+  /* Amino acid property colors */
+  --aa-hydrophobic: #d8ab4a;
+  --aa-polar: #81c784;
+  --aa-charged-pos: #8fc4ee;
+  --aa-charged-neg: #f06292;
+  --aa-special: #ffd54f;
+
+  /* Gradients */
+  --gradient-brand: linear-gradient(135deg, #8fc4ee 0%, #b388ff 100%);
+  --gradient-accent: linear-gradient(135deg, #8fc4ee 0%, #b388ff 100%);
+  --gradient-warm: linear-gradient(135deg, #e57373 0%, #d8ab4a 100%);
+  --gradient-cool: linear-gradient(135deg, #8fc4ee 0%, #81c784 100%);
+  --gradient-glow: radial-gradient(
+    ellipse at 50% 0%,
+    rgba(143, 196, 238, 0.08) 0%,
+    transparent 70%
+  );
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 20px rgba(143, 196, 238, 0.18);
+  --shadow-glow-sm: 0 0 12px rgba(143, 196, 238, 0.12);
+  --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  /* Glow levels */
+  --glow-faint: rgba(143, 196, 238, 0.06);
+  --glow-medium: rgba(143, 196, 238, 0.18);
+  --glow-strong: rgba(143, 196, 238, 0.5);
+}
+
+/* Keyframe animations */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: var(--shadow-glow-sm);
+  }
+
+  50% {
+    box-shadow: var(--shadow-glow);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

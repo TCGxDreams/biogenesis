@@ -1,0 +1,432 @@
+/* ============================================
+   BioGenesis — layout
+   Application frame: toolbar, main grid and sidebar.
+   ============================================ */
+
+/* ====== TOOLBAR ====== */
+#toolbar {
+  height: var(--toolbar-height);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-default);
+  /* Subtle glow line at top */
+  box-shadow:
+    0 1px 0 var(--border-accent),
+    inset 0 1px 0 var(--glow-faint);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  flex-shrink: 0;
+  z-index: 100;
+  background-image: var(--gradient-glow);
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.app-title {
+  font-size: 15px;
+  font-weight: 700;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+  text-shadow: none;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--border-default);
+  margin: 0 6px;
+  flex-shrink: 0;
+}
+
+.logo-img {
+  filter: drop-shadow(0 0 6px var(--border-accent));
+  transition: filter var(--transition-normal);
+}
+
+/* Theme Switcher Button */
+#theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+
+#theme-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+#theme-toggle svg {
+  width: 14px;
+  height: 14px;
+  transition: transform var(--transition-normal);
+}
+
+#theme-toggle:active svg {
+  transform: scale(0.85);
+}
+
+#theme-toggle .sun-ic {
+  display: none;
+}
+
+#theme-toggle .moon-ic {
+  display: block;
+}
+
+:root[data-theme='dark'] #theme-toggle .sun-ic {
+  display: block;
+}
+
+:root[data-theme='dark'] #theme-toggle .moon-ic {
+  display: none;
+}
+
+/* Grouped toolbar sections (File, Analyze, Transform) */
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  position: relative;
+}
+
+.toolbar-group-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  padding: 0 6px 0 4px;
+  white-space: nowrap;
+  opacity: 0.6;
+  user-select: none;
+}
+
+/* Legacy compat */
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.toolbar-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.toolbar-btn:active {
+  background: var(--bg-active);
+  transform: scale(0.97);
+}
+
+.toolbar-btn.active {
+  color: var(--accent-cyan);
+  background: var(--glow-faint);
+  border-color: var(--border-accent);
+}
+
+.toolbar-btn svg {
+  flex-shrink: 0;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  padding: 5px 12px;
+  transition: all var(--transition-fast);
+}
+
+.search-box:focus-within {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 3px var(--glow-medium);
+  background: var(--bg-elevated);
+}
+
+.search-box svg {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.search-box input {
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: var(--font-sans);
+  width: 190px;
+}
+
+.search-box input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ====== MAIN LAYOUT ====== */
+#main-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ====== SIDEBAR ====== */
+#sidebar {
+  width: var(--sidebar-width);
+  background: var(--bg-secondary);
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(0, 229, 255, 0.06) 0%, transparent 60%);
+  border-right: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sidebar-section {
+  padding: 12px;
+}
+
+.sidebar-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.sidebar-title svg {
+  opacity: 0.6;
+}
+
+/* File Tree */
+.sidebar-docs-section {
+  max-height: 35vh;
+  overflow-y: auto;
+  border-bottom: 1px solid var(--border-muted);
+  flex-shrink: 0;
+}
+
+.sidebar-docs-section .sidebar-title {
+  position: sticky;
+  top: 0;
+  background: var(--bg-secondary);
+  z-index: 2;
+  padding: 12px 12px 8px;
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.sidebar-docs-section .sidebar-title:hover {
+  color: var(--text-secondary);
+}
+
+.sidebar-docs-section .file-tree {
+  padding: 0 12px 8px;
+}
+
+.file-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.file-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.file-item.active {
+  background: rgba(0, 229, 255, 0.08);
+  color: var(--accent-cyan);
+  border-left: 2px solid var(--accent-cyan);
+  padding-left: 6px;
+}
+
+.file-item .file-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.file-item .file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-item .file-type {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* Tool Navigation */
+.tool-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tool-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  background: transparent;
+  border: none;
+  border-left: 2px solid transparent;
+  color: var(--text-secondary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.tool-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-left-color: var(--border-default);
+}
+
+/* Tools that cannot run on the current selection. The `title` attribute
+   explains why — see toolUnavailableReason() in src/app/toolMeta.js. */
+.tool-btn-disabled,
+.tool-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.tool-btn-disabled:hover,
+.tool-btn:disabled:hover {
+  background: transparent;
+  color: var(--text-secondary);
+  border-left-color: transparent;
+}
+
+.tool-btn.active {
+  background: linear-gradient(90deg, rgba(0, 229, 255, 0.12), rgba(0, 229, 255, 0.04));
+  color: var(--accent-cyan);
+  border-left: 2px solid var(--accent-cyan);
+  box-shadow: inset 0 0 20px rgba(0, 229, 255, 0.04);
+  animation: slide-in-left var(--transition-fast);
+}
+
+.tool-icon {
+  font-size: 14px;
+}
+
+.tool-svg {
+  flex-shrink: 0;
+  opacity: 0.65;
+  transition: opacity var(--transition-fast);
+}
+
+.tool-btn.active .tool-svg {
+  opacity: 1;
+  color: var(--accent-cyan);
+  filter: drop-shadow(0 0 4px rgba(0, 229, 255, 0.5));
+}
+
+.tool-btn:hover .tool-svg {
+  opacity: 0.9;
+}
+
+.tool-group-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 14px 12px 5px;
+  margin-top: 2px;
+  opacity: 0.7;
+}
+
+.tool-group-label:first-child {
+  margin-top: 0;
+  padding-top: 6px;
+}
+
+.sidebar-tools-section {
+  flex: 1;
+  overflow-y: auto;
+  border-bottom: none;
+}
+
+/* File item SVG icons */
+.file-item .file-icon-svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}

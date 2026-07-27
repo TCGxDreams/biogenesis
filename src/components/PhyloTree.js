@@ -1,8 +1,12 @@
+// @ts-nocheck -- TODO(T4): this layer is untyped until main.js is decomposed
+//                and the components are rewired onto the typed core contract.
 // ============================================
 // BioGenesis — Phylogenetic Tree Component
 // ============================================
 
-import { calculateDistanceMatrix, neighborJoining, upgma, toNewick, renderTreeSVG } from '../utils/phylo.js';
+import { renderTreeSVG } from '../utils/phylo.js';
+import { buildTree } from '../core/phylo-report.js';
+import { BioError } from '../core/errors.js';
 
 export function renderPhyloTree(sequences) {
   const allSeqs = sequences;
@@ -71,23 +75,17 @@ export function renderPhyloTree(sequences) {
   `;
 }
 
+/**
+ * Render the phylogenetic tree result. Tree inference lives in
+ * `src/core/phylo-report.js`; this function only draws the report.
+ *
+ * @param {Array<{name: string, sequence: string}>} seqs
+ * @param {'nj'|'upgma'} [algo]
+ * @returns {string} HTML
+ */
 export function computeAndRenderTree(seqs, algo = 'nj') {
-  if (seqs.length < 3) {
-    return '<div class="empty-state"><p class="empty-state-text" style="color:var(--accent-orange);">Need at least 3 sequences.</p></div>';
-  }
-
   try {
-    const maxLen = 800; // Alignment is slow, so we cap it
-    const trimmedSeqs = seqs.map(s => s.sequence.substring(0, maxLen));
-    const names = seqs.map(s => s.name);
-
-    const { matrix } = calculateDistanceMatrix(trimmedSeqs, names);
-    let tree;
-    if (algo === 'upgma' && window.upgma) {
-      tree = window.upgma(matrix, names); // We will add UPGMA to phylo.js
-    } else {
-      tree = neighborJoining(matrix, names);
-    }
+    const { tree, distanceMatrix: matrix, names } = buildTree(seqs, { algorithm: algo });
 
     const height = Math.max(400, seqs.length * 40);
     const svg = renderTreeSVG(tree, 800, height);
@@ -118,6 +116,9 @@ export function computeAndRenderTree(seqs, algo = 'nj') {
       ${matrixHtml}
     `;
   } catch (e) {
+    if (e instanceof BioError && e.code === 'TOO_FEW_SEQUENCES') {
+      return `<div class="empty-state"><p class="empty-state-text" style="color:var(--accent-orange);">${escapeHtml(e.message)}</p></div>`;
+    }
     return `<div class="empty-state"><span class="empty-state-icon">❌</span><p class="empty-state-text" style="color:#ef4444;">Error building tree: ${e.message}</p></div>`;
   }
 }

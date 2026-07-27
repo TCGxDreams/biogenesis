@@ -4,7 +4,25 @@
 
 import { needlemanWunsch } from './alignment.js';
 
+/**
+ * @typedef {import('../core/types.js').TreeNode} TreeNode
+ */
+
+/**
+ * A tree node after `renderTreeSVG` has stashed its screen coordinates on it.
+ *
+ * @typedef {TreeNode & {_x?: number, _y?: number}} LaidOutNode
+ */
+
 // Calculate distance matrix from sequences
+/**
+ * Pairwise distance matrix from global alignments, where distance is
+ * `1 - identity`.
+ *
+ * @param {string[]} sequences
+ * @param {string[]} [names] Defaults to `Seq1`, `Seq2`, ...
+ * @returns {{matrix: number[][], names: string[]}} Symmetric, zero diagonal.
+ */
 export function calculateDistanceMatrix(sequences, names) {
     const n = sequences.length;
     const matrix = Array.from({ length: n }, () => new Array(n).fill(0));
@@ -22,6 +40,13 @@ export function calculateDistanceMatrix(sequences, names) {
 }
 
 // Neighbor-Joining algorithm
+/**
+ * Neighbour-joining tree construction. Branch lengths are clamped at 0.
+ *
+ * @param {number[][]} distMatrix Symmetric, zero diagonal.
+ * @param {string[]} names Taxon labels, matching the matrix order.
+ * @returns {import('../core/types.js').TreeNode} Root node; a bare leaf for one taxon.
+ */
 export function neighborJoining(distMatrix, names) {
     const n = names.length;
     if (n < 2) return { name: names[0] || 'root', length: 0 };
@@ -37,7 +62,7 @@ export function neighborJoining(distMatrix, names) {
 
     // Working copies
     let d = distMatrix.map(row => [...row]);
-    let nodeNames = [...names];
+    /** @type {import('../core/types.js').TreeNode[]} */
     let nodes = names.map(name => ({ name, length: 0 }));
 
     while (nodes.length > 2) {
@@ -69,6 +94,7 @@ export function neighborJoining(distMatrix, names) {
         const branchJ = d[minI][minJ] - branchI;
 
         // Create new node
+        /** @type {import('../core/types.js').TreeNode} */
         const newNode = {
             name: '',
             children: [
@@ -119,10 +145,18 @@ export function neighborJoining(distMatrix, names) {
 }
 
 // Parse Newick format
+/**
+ * Parse a Newick string into a tree. A missing branch length becomes 0.
+ *
+ * @param {string} str
+ * @returns {import('../core/types.js').TreeNode}
+ */
 export function parseNewick(str) {
     let i = 0;
 
+    /** @returns {TreeNode} */
     function parseNode() {
+        /** @type {TreeNode & {children: TreeNode[]}} */
         const node = { name: '', children: [], length: 0 };
 
         if (str[i] === '(') {
@@ -162,6 +196,13 @@ export function parseNewick(str) {
 }
 
 // Convert tree to Newick format
+/**
+ * Serialise a tree to Newick, with branch lengths to four decimals. No trailing
+ * semicolon is added.
+ *
+ * @param {import('../core/types.js').TreeNode} node
+ * @returns {string}
+ */
 export function toNewick(node) {
     if (!node.children || node.children.length === 0) {
         return node.name + (node.length ? ':' + Math.max(0.0001, node.length).toFixed(4) : '');
@@ -171,7 +212,15 @@ export function toNewick(node) {
 }
 
 // UPGMA Algorithm
+/**
+ * UPGMA (average linkage) tree construction, which produces an ultrametric tree.
+ *
+ * @param {number[][]} distMatrix Symmetric, zero diagonal.
+ * @param {string[]} names Taxon labels, matching the matrix order.
+ * @returns {import('../core/types.js').TreeNode} Root node.
+ */
 export function upgma(distMatrix, names) {
+    /** @type {Array<{name: string, size: number, node: import('../core/types.js').TreeNode, height?: number, id?: number}>} */
     let clusters = names.map((name, i) => ({ name, size: 1, node: { name, length: 0 }, id: i }));
     let d = distMatrix.map(row => [...row]);
 
@@ -191,6 +240,7 @@ export function upgma(distMatrix, names) {
         const c2 = clusters[minJ];
         const branchLen = minD / 2;
 
+        /** @type {import('../core/types.js').TreeNode & {height: number}} */
         const newNode = {
             name: '',
             children: [
@@ -239,6 +289,14 @@ export function upgma(distMatrix, names) {
 }
 
 // Render phylogenetic tree as SVG
+/**
+ * Draw a rectangular cladogram with a scale bar. Leaf labels are HTML-escaped.
+ *
+ * @param {import('../core/types.js').TreeNode} tree
+ * @param {number} [width=700]
+ * @param {number} [height=400]
+ * @returns {string} SVG markup.
+ */
 export function renderTreeSVG(tree, width = 700, height = 400) {
     const leaves = getLeafNodes(tree);
     const numLeaves = leaves.length;
@@ -253,8 +311,11 @@ export function renderTreeSVG(tree, width = 700, height = 400) {
     const yStep = plotHeight / Math.max(numLeaves - 1, 1);
 
     let leafIndex = 0;
+    /** @type {string[]} */
     const paths = [];
+    /** @type {string[]} */
     const labels = [];
+    /** @type {string[]} */
     const dots = [];
 
     // Colors derived from BioGenesis premium theme
@@ -262,6 +323,11 @@ export function renderTreeSVG(tree, width = 700, height = 400) {
     const labelColor = "var(--text-primary)";
     const nodeColor = "var(--bg-primary)";
 
+    /**
+     * @param {LaidOutNode} node
+     * @param {number} [x=0] Cumulative branch length from the root.
+     * @returns {number} The node's y coordinate.
+     */
     function layout(node, x = 0) {
         if (!node.children || node.children.length === 0) {
             const y = margin.top + leafIndex * yStep;
@@ -274,7 +340,9 @@ export function renderTreeSVG(tree, width = 700, height = 400) {
             return y;
         }
 
-        const childYs = node.children.map(child => layout(child, x + (child.length || 0.05)));
+        const childYs = node.children.map(
+            (/** @type {LaidOutNode} */ child) => layout(child, x + (child.length || 0.05))
+        );
         const minY = Math.min(...childYs);
         const maxY = Math.max(...childYs);
         const midY = (minY + maxY) / 2;
@@ -286,7 +354,7 @@ export function renderTreeSVG(tree, width = 700, height = 400) {
         paths.push(`<path d="M${node._x},${minY} V${maxY}" fill="none" stroke="${strokeColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`);
 
         // Draw horizontal branches to children
-        for (const child of node.children) {
+        for (const child of /** @type {LaidOutNode[]} */ (node.children)) {
             paths.push(`<path d="M${node._x},${child._y} H${child._x}" fill="none" stroke="${strokeColor}" stroke-width="2" stroke-linecap="round"/>`);
         }
 
@@ -328,16 +396,31 @@ export function renderTreeSVG(tree, width = 700, height = 400) {
     </svg>`;
 }
 
+/**
+ * @param {import('../core/types.js').TreeNode} node
+ * @returns {import('../core/types.js').TreeNode[]}
+ */
 function getLeafNodes(node) {
     if (!node.children || node.children.length === 0) return [node];
     return node.children.flatMap(getLeafNodes);
 }
 
+/**
+ * @param {import('../core/types.js').TreeNode} node
+ * @param {number} [depth=0]
+ * @returns {number} Deepest cumulative branch length below this node.
+ */
 function getMaxDepth(node, depth = 0) {
     if (!node.children || node.children.length === 0) return depth;
-    return Math.max(...node.children.map(c => getMaxDepth(c, depth + (c.length || 0.1))));
+    return Math.max(
+        ...node.children.map((/** @type {import('../core/types.js').TreeNode} */ c) => getMaxDepth(c, depth + (c.length || 0.1)))
+    );
 }
 
+/**
+ * @param {string} str
+ * @returns {string}
+ */
 function escapeHtml(str) {
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }

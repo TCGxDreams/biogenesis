@@ -1,0 +1,184 @@
+/* ============================================
+   BioGenesis — tools
+   Tool panels that style their own sidebar-adjacent controls.
+   ============================================ */
+
+/* ====== DOT PLOT ====== */
+.dotplot-canvas-wrap {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.dotplot-canvas {
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-sm);
+  background: #000;
+  image-rendering: pixelated;
+  cursor: crosshair;
+}
+
+.dotplot-axis-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+/* ====== LINEAR MAP ====== */
+.linear-map-container {
+  overflow-x: auto;
+  padding: 16px 0;
+}
+
+.linear-map-svg {
+  min-width: 100%;
+}
+
+.linear-map-feature {
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.linear-map-feature:hover {
+  opacity: 1 !important;
+}
+
+.linear-map-ruler text {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  fill: var(--text-muted);
+}
+
+/* ====== MOTIF FINDER ====== */
+.motif-match {
+  background: rgba(6, 182, 212, 0.25);
+  border-bottom: 2px solid var(--accent-cyan);
+  padding: 0 1px;
+  cursor: pointer;
+}
+
+.motif-match:hover {
+  background: rgba(6, 182, 212, 0.4);
+}
+
+.motif-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.motif-result-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.motif-result-item:hover {
+  background: var(--bg-hover);
+}
+
+/* ====== CODON OPTIMIZATION ====== */
+.codon-table-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 4px;
+  font-size: 11px;
+}
+
+.codon-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: var(--bg-elevated);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+}
+
+.codon-cell .codon-triplet {
+  font-weight: 600;
+  color: var(--accent-cyan);
+  min-width: 32px;
+}
+
+.codon-cell .codon-aa {
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 14px;
+}
+
+.codon-cell .codon-freq {
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.codon-freq-bar {
+  width: 40px;
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.codon-freq-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent-cyan);
+}
+
+/* ====== 6-FRAME TRANSLATION ====== */
+.frame-translation-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.frame-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.frame-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 2px 0;
+}
+
+.frame-sequence {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  background: var(--bg-tertiary);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-muted);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.frame-divider {
+  height: 1px;
+  background: var(--border-muted);
+  margin: 4px 0;
+}
+
+.stop-codon {
+  color: var(--accent-red);
+  font-weight: 700;
+}
+
+.met-codon {
+  color: var(--accent-green);
+  font-weight: 700;
+}

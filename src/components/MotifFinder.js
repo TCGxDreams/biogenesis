@@ -1,8 +1,12 @@
+// @ts-nocheck -- TODO(T4): this layer is untyped until main.js is decomposed
+//                and the components are rewired onto the typed core contract.
 // ============================================
 // BioGenesis — Motif Finder Component
 // ============================================
 
 import { getNucleotideClass } from '../utils/bioUtils.js';
+import { findMotifs } from '../core/motif.js';
+import { BioError } from '../core/errors.js';
 
 export function renderMotifFinder(seq) {
     return `
@@ -56,58 +60,30 @@ export function renderMotifFinder(seq) {
   `;
 }
 
+/**
+ * Render the motif search result panel.
+ *
+ * All computation lives in `src/core/motif.js`; this function only turns the
+ * returned object — or a thrown BioError — into markup.
+ *
+ * @param {{ sequence: string, type: string }} seq
+ * @param {string} pattern
+ * @param {'exact'|'regex'|'iupac'} [mode]
+ * @param {'both'|'forward'|'reverse'} [strand]
+ * @returns {string} HTML
+ */
 export function computeMotifSearch(seq, pattern, mode = 'exact', strand = 'both') {
-    const upper = seq.sequence.toUpperCase();
-    const matches = [];
-
-    let regex;
+    let result;
     try {
-        if (mode === 'exact') {
-            regex = new RegExp(escapeRegex(pattern.toUpperCase()), 'g');
-        } else if (mode === 'iupac') {
-            regex = new RegExp(iupacToRegex(pattern.toUpperCase()), 'g');
-        } else {
-            regex = new RegExp(pattern.toUpperCase(), 'g');
-        }
+        result = findMotifs(seq.sequence, pattern, { mode, strand, type: seq.type });
     } catch (e) {
-        return `<div class="empty-state"><p class="empty-state-text">Invalid pattern: ${escapeHtml(e.message)}</p></div>`;
-    }
-
-    // Forward strand
-    if (strand !== 'reverse') {
-        let m;
-        while ((m = regex.exec(upper)) !== null) {
-            matches.push({
-                position: m.index,
-                length: m[0].length,
-                match: m[0],
-                strand: '+',
-                context: getContext(upper, m.index, m[0].length)
-            });
-            if (m[0].length === 0) break; // prevent infinite loop
+        if (e instanceof BioError) {
+            return `<div class="empty-state"><p class="empty-state-text">${escapeHtml(e.message)}</p></div>`;
         }
+        throw e;
     }
 
-    // Reverse strand
-    if (strand !== 'forward' && (seq.type === 'dna' || seq.type === 'rna')) {
-        const comp = { 'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', 'U': 'A' };
-        const revComp = upper.split('').reverse().map(c => comp[c] || c).join('');
-        let m;
-        const regex2 = new RegExp(regex.source, 'g');
-        while ((m = regex2.exec(revComp)) !== null) {
-            const origPos = upper.length - m.index - m[0].length;
-            matches.push({
-                position: origPos,
-                length: m[0].length,
-                match: m[0],
-                strand: '-',
-                context: getContext(upper, origPos, m[0].length)
-            });
-            if (m[0].length === 0) break;
-        }
-    }
-
-    matches.sort((a, b) => a.position - b.position);
+    const { matches, sequenceLength, forwardCount, reverseCount } = result;
 
     if (matches.length === 0) {
         return `<div class="empty-state"><p class="empty-state-text">No matches found for "${escapeHtml(pattern)}"</p></div>`;
@@ -117,8 +93,8 @@ export function computeMotifSearch(seq, pattern, mode = 'exact', strand = 'both'
     let html = `
     <div class="stats-grid" style="margin-bottom:16px;">
       <div class="stat-card"><div class="stat-title">Total Matches</div><div class="stat-value">${matches.length}</div></div>
-      <div class="stat-card"><div class="stat-title">Forward (+)</div><div class="stat-value">${matches.filter(m => m.strand === '+').length}</div></div>
-      <div class="stat-card"><div class="stat-title">Reverse (-)</div><div class="stat-value">${matches.filter(m => m.strand === '-').length}</div></div>
+      <div class="stat-card"><div class="stat-title">Forward (+)</div><div class="stat-value">${forwardCount}</div></div>
+      <div class="stat-card"><div class="stat-title">Reverse (-)</div><div class="stat-value">${reverseCount}</div></div>
       <div class="stat-card"><div class="stat-title">Pattern</div><div class="stat-value" style="font-size:14px;font-family:var(--font-mono);">${escapeHtml(pattern)}</div></div>
     </div>
   `;
@@ -130,13 +106,13 @@ export function computeMotifSearch(seq, pattern, mode = 'exact', strand = 'both'
       <div style="position:relative;height:40px;background:var(--bg-tertiary);border-radius:var(--radius-md);padding:0;border:1px solid var(--border-muted);overflow:hidden;">
         <div style="position:absolute;top:18px;left:0;right:0;height:2px;background:var(--text-muted);opacity:0.3;"></div>
         ${matches.slice(0, 100).map(m => {
-        const pct = (m.position / upper.length * 100).toFixed(2);
+        const pct = (m.position / sequenceLength * 100).toFixed(2);
         const color = m.strand === '+' ? 'var(--accent-cyan)' : 'var(--accent-orange)';
         return `<div style="position:absolute;top:12px;left:${pct}%;width:2px;height:16px;background:${color};opacity:0.8;" title="${m.strand} strand, pos ${m.position + 1}"></div>`;
     }).join('')}
       </div>
       <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:2px;">
-        <span>1</span><span>${upper.length}</span>
+        <span>1</span><span>${sequenceLength}</span>
       </div>
     </div>
   `;
@@ -154,7 +130,7 @@ export function computeMotifSearch(seq, pattern, mode = 'exact', strand = 'both'
               <td style="color:${m.strand === '+' ? 'var(--accent-cyan)' : 'var(--accent-orange)'};font-weight:600;">${m.strand}</td>
               <td style="font-family:var(--font-mono);">${m.position + 1}..${m.position + m.length}</td>
               <td style="font-family:var(--font-mono);font-weight:600;">${colorCodeSeq(m.match)}</td>
-              <td style="font-family:var(--font-mono);font-size:11px;">${m.context}</td>
+              <td style="font-family:var(--font-mono);font-size:11px;">${renderContext(m)}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -166,24 +142,13 @@ export function computeMotifSearch(seq, pattern, mode = 'exact', strand = 'both'
     return html;
 }
 
-function getContext(seq, pos, len, flank = 10) {
-    const before = seq.substring(Math.max(0, pos - flank), pos);
-    const match = seq.substring(pos, pos + len);
-    const after = seq.substring(pos + len, Math.min(seq.length, pos + len + flank));
-    return `<span style="color:var(--text-muted);">${before}</span><span class="motif-match">${match}</span><span style="color:var(--text-muted);">${after}</span>`;
+/** @param {import('../core/motif.js').MotifMatch} m */
+function renderContext(m) {
+    return `<span style="color:var(--text-muted);">${m.contextBefore}</span><span class="motif-match">${m.forwardSlice}</span><span style="color:var(--text-muted);">${m.contextAfter}</span>`;
 }
 
 function colorCodeSeq(seq) {
     return seq.split('').map(c => `<span class="${getNucleotideClass(c)}">${c}</span>`).join('');
-}
-
-function iupacToRegex(pattern) {
-    const map = { 'R': '[AG]', 'Y': '[CT]', 'S': '[GC]', 'W': '[AT]', 'K': '[GT]', 'M': '[AC]', 'B': '[CGT]', 'D': '[AGT]', 'H': '[ACT]', 'V': '[ACG]', 'N': '[ACGT]' };
-    return pattern.split('').map(c => map[c] || escapeRegex(c)).join('');
-}
-
-function escapeRegex(str) {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function escapeHtml(str) {

@@ -1,3 +1,5 @@
+// @ts-nocheck -- TODO(T4): this layer is untyped until main.js is decomposed
+//                and the components are rewired onto the typed core contract.
 // ============================================
 // BioGenesis — Sequence Viewer Component
 // Optimized: chunked rendering, line-level coloring, mini-map, and ruler

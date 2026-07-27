@@ -3,6 +3,7 @@
 // ============================================
 
 // BLOSUM62 scoring matrix
+/** @type {{[a: string]: {[b: string]: number}}} */
 const BLOSUM62_DATA = {
     'A': { 'A': 4, 'R': -1, 'N': -2, 'D': -2, 'C': 0, 'Q': -1, 'E': -1, 'G': 0, 'H': -2, 'I': -1, 'L': -1, 'K': -1, 'M': -1, 'F': -2, 'P': -1, 'S': 1, 'T': 0, 'W': -3, 'Y': -2, 'V': 0 },
     'R': { 'A': -1, 'R': 5, 'N': 0, 'D': -2, 'C': -3, 'Q': 1, 'E': 0, 'G': -2, 'H': 0, 'I': -3, 'L': -2, 'K': 2, 'M': -1, 'F': -3, 'P': -2, 'S': -1, 'T': -1, 'W': -3, 'Y': -2, 'V': -3 },
@@ -26,6 +27,14 @@ const BLOSUM62_DATA = {
     'V': { 'A': 0, 'R': -3, 'N': -3, 'D': -3, 'C': -1, 'Q': -2, 'E': -2, 'G': -3, 'H': -3, 'I': 3, 'L': 1, 'K': -2, 'M': 1, 'F': -1, 'P': -2, 'S': -2, 'T': 0, 'W': -3, 'Y': -1, 'V': 4 }
 };
 
+/**
+ * Substitution score for one aligned column.
+ *
+ * @param {string} a
+ * @param {string} b
+ * @param {boolean} isProtein Score with BLOSUM62 instead of match/mismatch.
+ * @returns {number}
+ */
 function score(a, b, isProtein) {
     if (isProtein) {
         const A = a.toUpperCase(), B = b.toUpperCase();
@@ -35,6 +44,17 @@ function score(a, b, isProtein) {
 }
 
 // Needleman-Wunsch (Global Alignment)
+/**
+ * Needleman-Wunsch global alignment.
+ *
+ * Nucleotides score +2 for a match and -1 for a mismatch; proteins use BLOSUM62.
+ *
+ * @param {string} seq1
+ * @param {string} seq2
+ * @param {boolean} [isProtein=false] Score with BLOSUM62 instead.
+ * @param {number} [gapPenalty=-2]
+ * @returns {import('../core/types.js').PairwiseAlignment}
+ */
 export function needlemanWunsch(seq1, seq2, isProtein = false, gapPenalty = -2) {
     const m = seq1.length;
     const n = seq2.length;
@@ -83,6 +103,19 @@ export function needlemanWunsch(seq1, seq2, isProtein = false, gapPenalty = -2) 
 }
 
 // Smith-Waterman (Local Alignment)
+/**
+ * Smith-Waterman local alignment.
+ *
+ * Returns an empty alignment with score 0 when no positively scoring segment
+ * exists.
+ *
+ * @param {string} seq1
+ * @param {string} seq2
+ * @param {boolean} [isProtein=false] Score with BLOSUM62 instead.
+ * @param {number} [gapPenalty=-2]
+ * @returns {import('../core/types.js').PairwiseAlignment} Includes `start1` and
+ *   `start2`, the 0-based starts of the local hit.
+ */
 export function smithWaterman(seq1, seq2, isProtein = false, gapPenalty = -2) {
     const m = seq1.length;
     const n = seq2.length;
@@ -133,6 +166,13 @@ export function smithWaterman(seq1, seq2, isProtein = false, gapPenalty = -2) {
     };
 }
 
+/**
+ * Percent identity over columns where neither row holds a gap.
+ *
+ * @param {string} aligned1
+ * @param {string} aligned2
+ * @returns {number} 0-100.
+ */
 function calculateIdentity(aligned1, aligned2) {
     let matches = 0, total = 0;
     for (let i = 0; i < aligned1.length; i++) {
@@ -144,6 +184,13 @@ function calculateIdentity(aligned1, aligned2) {
     return total > 0 ? (matches / total * 100) : 0;
 }
 
+/**
+ * Columns where either row holds a gap.
+ *
+ * @param {string} aligned1
+ * @param {string} aligned2
+ * @returns {number}
+ */
 function countGaps(aligned1, aligned2) {
     let gaps = 0;
     for (let i = 0; i < aligned1.length; i++) {
@@ -153,12 +200,20 @@ function countGaps(aligned1, aligned2) {
 }
 
 // Generate consensus sequence
+/**
+ * Majority-rule consensus of aligned rows. Gaps are ignored unless a column is
+ * entirely gaps, which yields `-`.
+ *
+ * @param {string[]} alignedSequences Rows of equal length.
+ * @returns {string} Uppercase; empty for no input.
+ */
 export function generateConsensus(alignedSequences) {
     if (alignedSequences.length === 0) return '';
     const len = alignedSequences[0].length;
     let consensus = '';
 
     for (let i = 0; i < len; i++) {
+        /** @type {{[residue: string]: number}} */
         const counts = {};
         for (const seq of alignedSequences) {
             const c = seq[i]?.toUpperCase();
@@ -178,6 +233,14 @@ export function generateConsensus(alignedSequences) {
 }
 
 // Multiple Sequence Alignment (progressive, simplified)
+/**
+ * Progressive multiple sequence alignment: each sequence is aligned against the
+ * first, and existing rows are re-gapped to match.
+ *
+ * @param {string[]} sequences
+ * @param {boolean} [isProtein=false] Score with BLOSUM62 instead.
+ * @returns {string[]} Rows of equal length; stripping gaps recovers the inputs.
+ */
 export function multipleAlignment(sequences, isProtein = false) {
     if (sequences.length < 2) return sequences.map(s => s);
 

@@ -1,6 +1,11 @@
+// @ts-nocheck -- TODO(T4): this layer is untyped until main.js is decomposed
+//                and the components are rewired onto the typed core contract.
 // ============================================
 // BioGenesis — Dot Plot Analysis Component
 // ============================================
+
+import { computeDotMatrix } from '../core/dotplot.js';
+import { BioError } from '../core/errors.js';
 
 export function renderDotPlot(sequences, activeIdx) {
     const options = sequences.map((s, i) =>
@@ -62,39 +67,39 @@ export function renderDotPlot(sequences, activeIdx) {
   `;
 }
 
+/**
+ * Render the dot plot result panel. All computation lives in
+ * `src/core/dotplot.js`; this function only draws the returned matrix.
+ *
+ * @param {{ name: string, sequence: string }} seq1
+ * @param {{ name: string, sequence: string }} seq2
+ * @param {number} [windowSize]
+ * @param {number} [threshold]
+ * @returns {string} HTML
+ */
 export function computeDotPlot(seq1, seq2, windowSize = 10, threshold = 70) {
-    const s1 = seq1.sequence.toUpperCase().substring(0, 800);
-    const s2 = seq2.sequence.toUpperCase().substring(0, 800);
-    const len1 = s1.length;
-    const len2 = s2.length;
-
-    if (len1 === 0 || len2 === 0) {
-        return '<div class="empty-state"><p class="empty-state-text">Sequences are empty</p></div>';
+    let matrix;
+    try {
+        matrix = computeDotMatrix(seq1.sequence, seq2.sequence, { windowSize, threshold });
+    } catch (e) {
+        if (e instanceof BioError) {
+            return `<div class="empty-state"><p class="empty-state-text">${escapeHtml(e.message)}</p></div>`;
+        }
+        throw e;
     }
 
+    const { lengthA: len1, lengthB: len2 } = matrix.dimensions;
     const canvasSize = 400;
-    const pixW = canvasSize / len1;
-    const pixH = canvasSize / len2;
 
     // Build SVG dot plot
     let dots = '';
-    const thresholdCount = Math.ceil(windowSize * threshold / 100);
-
-    for (let i = 0; i <= len1 - windowSize; i += Math.max(1, Math.floor(len1 / 300))) {
-        for (let j = 0; j <= len2 - windowSize; j += Math.max(1, Math.floor(len2 / 300))) {
-            let matches = 0;
-            for (let k = 0; k < windowSize; k++) {
-                if (s1[i + k] === s2[j + k]) matches++;
-            }
-            if (matches >= thresholdCount) {
-                const opacity = Math.min(1, (matches / windowSize - 0.5) * 3);
-                const x = (i / len1 * canvasSize).toFixed(1);
-                const y = (j / len2 * canvasSize).toFixed(1);
-                const w = Math.max(1, (windowSize / len1 * canvasSize)).toFixed(1);
-                const h = Math.max(1, (windowSize / len2 * canvasSize)).toFixed(1);
-                dots += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="var(--accent-cyan)" opacity="${opacity.toFixed(2)}" />`;
-            }
-        }
+    for (const point of matrix.points) {
+        const opacity = Math.min(1, (point.identity - 0.5) * 3);
+        const x = (point.x / len1 * canvasSize).toFixed(1);
+        const y = (point.y / len2 * canvasSize).toFixed(1);
+        const w = Math.max(1, (windowSize / len1 * canvasSize)).toFixed(1);
+        const h = Math.max(1, (windowSize / len2 * canvasSize)).toFixed(1);
+        dots += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="var(--accent-cyan)" opacity="${opacity.toFixed(2)}" />`;
     }
 
     // Ruler ticks

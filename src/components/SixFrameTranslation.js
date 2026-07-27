@@ -1,9 +1,12 @@
+// @ts-nocheck -- TODO(T4): this layer is untyped until main.js is decomposed
+//                and the components are rewired onto the typed core contract.
 // ============================================
 // BioGenesis — 6-Frame Translation Component
 // Advanced with ORF Highlighting and FASTA Export
 // ============================================
 
-import { translate, reverseComplement, getAminoAcidClass, getNucleotideClass, CODON_TABLE } from '../utils/bioUtils.js';
+import { getAminoAcidClass, getNucleotideClass } from '../utils/bioUtils.js';
+import { translateSixFrames } from '../core/translation.js';
 
 export function renderSixFrameTranslation(seq) {
   if (seq.type === 'protein') {
@@ -15,57 +18,8 @@ export function renderSixFrameTranslation(seq) {
   }
 
   const seqStr = seq.sequence.toUpperCase();
-  const rc = reverseComplement(seqStr);
-  const displayLen = Math.min(seqStr.length, 3000); // Increased display limit for practical viewing
-  const dna = seqStr.substring(0, displayLen);
-  const rcDna = rc.substring(0, displayLen);
-
-  const allOrfs = [];
-
-  // Helper to find ORFs in a frame string
-  function findOrfs(protein, frameLabel, direction) {
-    const frameOrfs = [];
-    let inOrf = false, orfStart = 0;
-    for (let i = 0; i < protein.length; i++) {
-      if (protein[i] === 'M' && !inOrf) {
-        inOrf = true;
-        orfStart = i;
-      } else if (protein[i] === '*' && inOrf) {
-        const orfLen = i - orfStart;
-        if (orfLen >= 10) { // at least 10 aa
-          const o = {
-            frame: frameLabel,
-            direction,
-            start: orfStart,
-            end: i,
-            length: orfLen,
-            protein: protein.substring(orfStart, i + 1)
-          };
-          frameOrfs.push(o);
-          allOrfs.push(o);
-        }
-        inOrf = false;
-      }
-    }
-    return frameOrfs;
-  }
-
-  // Forward frames
-  const frames = [];
-  for (let f = 0; f < 3; f++) {
-    const protein = translate(dna, f);
-    const orfs = findOrfs(protein, `+${f + 1}`, 'forward');
-    frames.push({ label: `+${f + 1}`, frame: f, protein, direction: 'forward', orfs });
-  }
-
-  // Reverse frames
-  for (let f = 0; f < 3; f++) {
-    const protein = translate(rcDna, f);
-    const orfs = findOrfs(protein, `-${f + 1}`, 'reverse');
-    frames.push({ label: `-${f + 1}`, frame: f, protein, direction: 'reverse', orfs });
-  }
-
-  allOrfs.sort((a, b) => b.length - a.length);
+  const { frames, orfs: allOrfs, dna } = translateSixFrames(seqStr);
+  const displayLen = dna.length;
 
   // Render DNA sequence line
   const dnaLine = dna.split('').map(c => `<span class="${getNucleotideClass(c)}">${c}</span>`).join('');
@@ -170,42 +124,8 @@ export function bindSixFrameEvents(seq) {
   const exportBtn = document.getElementById('export-orfs-btn');
   if (!exportBtn || !seq || seq.type === 'protein') return;
 
-  // Recalculate ORFs for export (so we aren't bound to visual display limits)
-  const seqStr = seq.sequence.toUpperCase();
-  const rcDna = reverseComplement(seqStr);
-
-  // We already do this logic above, but for export we run it on the FULL sequence
-  const allOrfs = [];
-
-  function findFullOrfs(dnaStr, frameLabel, direction) {
-    for (let f = 0; f < 3; f++) {
-      const protein = translate(dnaStr, f);
-      let inOrf = false, orfStart = 0;
-      for (let i = 0; i < protein.length; i++) {
-        if (protein[i] === 'M' && !inOrf) {
-          inOrf = true;
-          orfStart = i;
-        } else if (protein[i] === '*' && inOrf) {
-          const orfLen = i - orfStart;
-          if (orfLen >= 10) {
-            allOrfs.push({
-              frame: `${frameLabel}${f + 1}`,
-              length: orfLen,
-              protein: protein.substring(orfStart, i + 1),
-              startPos: orfStart + 1,
-              endPos: i + 1
-            });
-          }
-          inOrf = false;
-        }
-      }
-    }
-  }
-
-  findFullOrfs(seqStr, '+', 'forward');
-  findFullOrfs(rcDna, '-', 'reverse');
-
-  allOrfs.sort((a, b) => b.length - a.length);
+  // Export runs on the FULL sequence, not the display-truncated one.
+  const { orfs: allOrfs } = translateSixFrames(seq.sequence, { maxLength: Infinity });
 
   exportBtn.addEventListener('click', () => {
     if (allOrfs.length === 0) return;

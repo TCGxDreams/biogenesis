@@ -1,0 +1,627 @@
+/* ============================================
+   BioGenesis — panels
+   Per-tool panel styling: viewers, maps, trees and result tables.
+   ============================================ */
+
+/* ====== SEQUENCE VIEWER ====== */
+.sequence-display {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.8;
+  letter-spacing: 1px;
+  padding: 16px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-muted);
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  user-select: text;
+}
+
+.sequence-display .line-number {
+  color: var(--text-muted);
+  display: inline-block;
+  width: 60px;
+  text-align: right;
+  padding-right: 12px;
+  user-select: none;
+  font-size: 11px;
+}
+
+.nt-a {
+  color: var(--nt-a);
+  font-weight: 500;
+}
+
+.nt-t {
+  color: var(--nt-t);
+  font-weight: 500;
+}
+
+.nt-c {
+  color: var(--nt-c);
+  font-weight: 500;
+}
+
+.nt-g {
+  color: var(--nt-g);
+  font-weight: 500;
+}
+
+.nt-u {
+  color: var(--nt-u);
+  font-weight: 500;
+}
+
+.nt-gap {
+  color: var(--text-muted);
+}
+
+/* Amino acid colors (PTNK palette) */
+.aa-hydrophobic {
+  color: var(--aa-hydrophobic);
+}
+
+.aa-polar {
+  color: var(--aa-polar);
+}
+
+.aa-positive {
+  color: var(--aa-charged-pos);
+}
+
+.aa-negative {
+  color: var(--aa-charged-neg);
+}
+
+.aa-special {
+  color: var(--aa-special);
+}
+
+.seq-info-bar {
+  display: flex;
+  gap: 16px;
+  padding: 10px 16px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.seq-info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.seq-info-item .label {
+  color: var(--text-muted);
+}
+
+.seq-info-item .value {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* ====== ALIGNMENT VIEW ====== */
+.alignment-container {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  overflow: auto;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-muted);
+}
+
+.alignment-row {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border-muted);
+  min-height: 28px;
+}
+
+.alignment-row:last-child {
+  border-bottom: none;
+}
+
+.alignment-label {
+  min-width: 120px;
+  padding: 4px 12px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  background: var(--bg-elevated);
+  border-right: 1px solid var(--border-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.alignment-seq {
+  padding: 4px 8px;
+  letter-spacing: 1px;
+  white-space: pre;
+}
+
+.alignment-consensus {
+  border-top: 2px solid var(--border-default);
+}
+
+.consensus-match {
+  color: var(--accent-green);
+}
+
+.consensus-mismatch {
+  color: var(--accent-red);
+}
+
+.consensus-gap {
+  color: var(--text-muted);
+}
+
+/* ====== PLASMID MAP ====== */
+.plasmid-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+  position: relative;
+}
+
+.plasmid-svg {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.plasmid-feature-list {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.plasmid-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.plasmid-feature-item:hover {
+  background: var(--bg-hover);
+}
+
+.feature-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ====== PHYLO TREE ====== */
+.phylo-container {
+  min-height: 400px;
+  overflow: auto;
+}
+
+.phylo-svg {
+  width: 100%;
+  min-height: 400px;
+}
+
+.phylo-node {
+  cursor: pointer;
+}
+
+.phylo-label {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  fill: var(--text-primary);
+}
+
+.phylo-branch {
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+  fill: none;
+}
+
+.phylo-node-dot {
+  fill: var(--accent-cyan);
+  transition: r var(--transition-fast);
+}
+
+.phylo-node:hover .phylo-node-dot {
+  r: 5;
+}
+
+/* ====== PRIMER DESIGN ====== */
+.primer-results {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.primer-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  transition: border-color var(--transition-fast);
+}
+
+.primer-card:hover {
+  border-color: var(--accent-cyan);
+}
+
+.primer-card h4 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--accent-cyan);
+}
+
+.primer-card .primer-seq {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+.primer-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+}
+
+.primer-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.primer-stat .stat-label {
+  color: var(--text-muted);
+}
+
+.primer-stat .stat-value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ====== BLAST RESULTS ====== */
+.blast-results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.blast-results-table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border-bottom: 2px solid var(--border-default);
+  position: sticky;
+  top: 0;
+}
+
+.blast-results-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-muted);
+  color: var(--text-primary);
+}
+
+.blast-results-table tr:hover td {
+  background: var(--bg-hover);
+}
+
+.blast-results-table .evalue {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+/* ====== RESTRICTION ANALYSIS ====== */
+.gel-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.gel-image {
+  background: linear-gradient(180deg, #0a0a0a 0%, #111 100%);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  min-width: 300px;
+  border: 1px solid var(--border-muted);
+  position: relative;
+}
+
+.gel-lane {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  min-height: 400px;
+}
+
+.gel-header {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.gel-band {
+  width: 60px;
+  height: 4px;
+  background: rgba(0, 255, 100, 0.7);
+  border-radius: 1px;
+  position: absolute;
+  box-shadow: 0 0 6px rgba(0, 255, 100, 0.4);
+  transition: all var(--transition-normal);
+}
+
+.gel-band:hover {
+  background: rgba(0, 255, 100, 1);
+  box-shadow: 0 0 12px rgba(0, 255, 100, 0.6);
+  height: 5px;
+}
+
+.gel-marker {
+  position: absolute;
+  left: -40px;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.enzyme-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* Legacy enzyme-item (kept for compat) */
+.enzyme-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border-left: 2px solid transparent;
+}
+
+.enzyme-item:hover {
+  background: var(--bg-hover);
+}
+
+.enzyme-item.selected {
+  background: rgba(0, 229, 255, 0.1);
+  border-left-color: var(--accent-cyan);
+}
+
+.enzyme-name {
+  font-weight: 600;
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
+  min-width: 72px;
+}
+
+.enzyme-site {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-blue);
+  letter-spacing: 1px;
+}
+
+.enzyme-cuts {
+  margin-left: auto;
+  font-size: 11px;
+  background: var(--bg-active);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+/* === New Restriction Analysis v2 === */
+
+/* Compact stats pill */
+.re-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-sm);
+  min-width: 58px;
+}
+
+.re-stat-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  line-height: 1.2;
+}
+
+.re-stat-lbl {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Overhang type badges */
+.overhang-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.overhang-5primep {
+  background: rgba(0, 229, 255, 0.12);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+}
+
+.overhang-3primep {
+  background: rgba(139, 92, 246, 0.12);
+  color: var(--accent-purple);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.overhang-blunt {
+  background: rgba(110, 118, 129, 0.15);
+  color: var(--text-muted);
+  border: 1px solid var(--border-muted);
+}
+
+/* Cut count badges */
+.cuts-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.cuts-unique {
+  background: rgba(0, 229, 255, 0.15);
+  color: var(--accent-cyan);
+}
+
+.cuts-few {
+  background: rgba(63, 185, 80, 0.12);
+  color: var(--accent-green);
+}
+
+.cuts-many {
+  background: rgba(248, 81, 73, 0.12);
+  color: var(--accent-red);
+}
+
+/* Restriction enzyme table */
+.re-table tbody tr.enzyme-row:hover {
+  background: var(--bg-hover);
+}
+
+.re-table tbody tr.enzyme-row.selected {
+  background: rgba(0, 229, 255, 0.06);
+}
+
+.re-table thead th {
+  background: var(--bg-secondary);
+}
+
+/* ====== STATISTICS ====== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  transition: border-color var(--transition-fast);
+}
+
+.stat-card:hover {
+  border-color: var(--border-accent);
+}
+
+.stat-card .stat-title {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.stat-card .stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-card .stat-unit {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-left: 2px;
+}
+
+.composition-chart {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.composition-bar {
+  display: flex;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin: 12px 0;
+}
+
+.composition-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  transition: flex-grow var(--transition-normal);
+  min-width: 24px;
+}
+
+.composition-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}

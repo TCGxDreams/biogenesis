@@ -1,7 +1,11 @@
+// @ts-nocheck -- TODO(T4): this layer is untyped until main.js is decomposed
+//                and the components are rewired onto the typed core contract.
 // ============================================
 // BioGenesis — GC Content & Sequence Properties Plot
 // Sliding-window analysis with interactive canvas
 // ============================================
+
+import { computeProperty, METRICS } from '../core/properties.js';
 
 export function renderSequenceProperties(seq) {
     if (!seq) return '<div class="empty-state"><p class="empty-state-text">Select a sequence to view properties</p></div>';
@@ -71,23 +75,6 @@ export function renderSequenceProperties(seq) {
 }
 
 // ─── Hydrophobicity scales ───
-const KYTE_DOOLITTLE = {
-    A: 1.8, R: -4.5, N: -3.5, D: -3.5, C: 2.5, E: -3.5, Q: -3.5, G: -0.4, H: -3.2, I: 4.5,
-    L: 3.8, K: -3.9, M: 1.9, F: 2.8, P: -1.6, S: -0.8, T: -0.7, W: -0.9, Y: -1.3, V: 4.2
-};
-const FLEXIBILITY = {
-    A: 0.36, R: 0.53, N: 0.46, D: 0.51, C: 0.35, E: 0.50, Q: 0.49, G: 0.54, H: 0.32, I: 0.46,
-    L: 0.40, K: 0.47, M: 0.30, F: 0.31, P: 0.51, S: 0.51, T: 0.44, W: 0.31, Y: 0.42, V: 0.39
-};
-const AA_MW = {
-    A: 89.1, R: 174.2, N: 132.1, D: 133.1, C: 121.2, E: 147.1, Q: 146.2, G: 75.0, H: 155.2, I: 131.2,
-    L: 131.2, K: 146.2, M: 149.2, F: 165.2, P: 115.1, S: 105.1, T: 119.1, W: 204.2, Y: 181.2, V: 117.1
-};
-const AA_CHARGE = {
-    A: 0, R: 1, N: 0, D: -1, C: 0, E: -1, Q: 0, G: 0, H: 0.5, I: 0,
-    L: 0, K: 1, M: 0, F: 0, P: 0, S: 0, T: 0, W: 0, Y: 0, V: 0
-};
-
 let currentPlotData = null;
 
 export function bindSequencePropertiesEvents(seq) {
@@ -126,120 +113,29 @@ function computeAndRenderPlot(seq, windowSize, plotType) {
     const s = seq.sequence.toUpperCase();
     const len = s.length;
 
-    const values = [];
-    let label = '', unit = '', color1 = '#00d4e8', color2 = '#086e8a';
+    // Colours are presentation only; the numbers come from src/core/properties.js.
+    const PLOT_COLORS = {
+        gc_content: ['#00d4e8', '#086e8a'],
+        at_skew: ['#3fb950', '#f85149'],
+        gc_skew: ['#58a6ff', '#d29922'],
+        complexity: ['#8b5cf6', '#582d9c'],
+        cpg: ['#f778ba', '#bf3e81'],
+        hydrophobicity: ['#f85149', '#bd3933'],
+        charge: ['#58a6ff', '#f85149'],
+        molecular_weight: ['#3fb950', '#2ea043'],
+        flexibility: ['#a855f7', '#7c3aed'],
+    };
+
+    let values = [], label = '', unit = '';
+    let [color1, color2] = PLOT_COLORS[plotType] || ['#00d4e8', '#086e8a'];
     let globalStat = {};
 
-    switch (plotType) {
-        case 'gc_content': {
-            label = 'GC Content (%)'; unit = '%';
-            color1 = '#00d4e8'; color2 = '#086e8a';
-            let totalGC = 0;
-            for (let i = 0; i <= len - windowSize; i++) {
-                const w = s.substring(i, i + windowSize);
-                const gc = (w.split('G').length - 1 + w.split('C').length - 1) / windowSize;
-                values.push(gc * 100);
-            }
-            for (let c of s) if (c === 'G' || c === 'C') totalGC++;
-            globalStat = { 'Overall GC': (totalGC / len * 100).toFixed(1) + '%', 'AT/GC Ratio': ((len - totalGC) / totalGC).toFixed(2), 'Length': len.toLocaleString() + ' bp' };
-            break;
-        }
-        case 'at_skew': {
-            label = 'AT Skew (A-T)/(A+T)'; unit = '';
-            color1 = '#3fb950'; color2 = '#f85149';
-            for (let i = 0; i <= len - windowSize; i++) {
-                const w = s.substring(i, i + windowSize);
-                const a = (w.split('A').length - 1), t = (w.split('T').length - 1);
-                values.push(a + t > 0 ? (a - t) / (a + t) : 0);
-            }
-            break;
-        }
-        case 'gc_skew': {
-            label = 'GC Skew (G-C)/(G+C)'; unit = '';
-            color1 = '#58a6ff'; color2 = '#d29922';
-            for (let i = 0; i <= len - windowSize; i++) {
-                const w = s.substring(i, i + windowSize);
-                const g = (w.split('G').length - 1), c = (w.split('C').length - 1);
-                values.push(g + c > 0 ? (g - c) / (g + c) : 0);
-            }
-            break;
-        }
-        case 'complexity': {
-            label = 'Linguistic Complexity'; unit = '';
-            color1 = '#8b5cf6'; color2 = '#582d9c';
-            for (let i = 0; i <= len - windowSize; i++) {
-                const w = s.substring(i, i + windowSize);
-                const unique = new Set();
-                for (let k = 1; k <= 3; k++) {
-                    for (let j = 0; j <= w.length - k; j++) unique.add(w.substring(j, j + k));
-                }
-                values.push(unique.size / windowSize);
-            }
-            break;
-        }
-        case 'cpg': {
-            label = 'CpG Observed/Expected'; unit = '';
-            color1 = '#f778ba'; color2 = '#bf3e81';
-            for (let i = 0; i <= len - windowSize; i++) {
-                const w = s.substring(i, i + windowSize);
-                const cg_count = (w.match(/CG/g) || []).length;
-                const c_count = (w.split('C').length - 1);
-                const g_count = (w.split('G').length - 1);
-                const expected = (c_count * g_count) / windowSize;
-                values.push(expected > 0 ? cg_count / expected : 0);
-            }
-            let totalCpG = (s.match(/CG/g) || []).length;
-            globalStat = { 'CpG sites': totalCpG.toString(), 'CpG density': (totalCpG / (len / 100)).toFixed(1) + '/100bp' };
-            break;
-        }
-        case 'hydrophobicity': {
-            label = 'Hydrophobicity (Kyte-Doolittle)'; unit = '';
-            color1 = '#f85149'; color2 = '#bd3933';
-            for (let i = 0; i <= len - windowSize; i++) {
-                let sum = 0;
-                for (let j = i; j < i + windowSize; j++) sum += (KYTE_DOOLITTLE[s[j]] || 0);
-                values.push(sum / windowSize);
-            }
-            const avgH = values.reduce((a, b) => a + b, 0) / Math.max(1, values.length);
-            globalStat = { 'Avg Hydrophobicity': avgH.toFixed(2), 'GRAVY': avgH.toFixed(3), 'Length': len.toLocaleString() + ' aa' };
-            break;
-        }
-        case 'charge': {
-            label = 'Net Charge (pH 7)'; unit = '';
-            color1 = '#58a6ff'; color2 = '#f85149';
-            for (let i = 0; i <= len - windowSize; i++) {
-                let sum = 0;
-                for (let j = i; j < i + windowSize; j++) sum += (AA_CHARGE[s[j]] || 0);
-                values.push(sum / windowSize);
-            }
-            let totalCharge = 0;
-            for (let c of s) totalCharge += (AA_CHARGE[c] || 0);
-            globalStat = { 'Total Net Charge': totalCharge.toFixed(1), 'Est. Isoelectric Point (pI)': estimatePi(s) };
-            break;
-        }
-        case 'molecular_weight': {
-            label = 'Molecular Weight Window Avg'; unit = 'Da';
-            color1 = '#3fb950'; color2 = '#2ea043';
-            for (let i = 0; i <= len - windowSize; i++) {
-                let sum = 0;
-                for (let j = i; j < i + windowSize; j++) sum += (AA_MW[s[j]] || 110);
-                values.push(sum / windowSize);
-            }
-            let totalMW = 0;
-            for (let c of s) totalMW += (AA_MW[c] || 110);
-            globalStat = { 'Total MW': (totalMW / 1000).toFixed(1) + ' kDa', 'Avg Residue MW': (totalMW / len).toFixed(1) + ' Da' };
-            break;
-        }
-        case 'flexibility': {
-            label = 'Flexibility (B-factor scale)'; unit = '';
-            color1 = '#a855f7'; color2 = '#7c3aed';
-            for (let i = 0; i <= len - windowSize; i++) {
-                let sum = 0;
-                for (let j = i; j < i + windowSize; j++) sum += (FLEXIBILITY[s[j]] || 0.4);
-                values.push(sum / windowSize);
-            }
-            break;
-        }
+    if (METRICS[plotType]) {
+        const series = computeProperty(s, plotType, windowSize);
+        values = series.values;
+        label = series.label;
+        unit = series.unit;
+        globalStat = formatGlobalStats(plotType, series.stats);
     }
 
     if (values.length === 0) return;
@@ -430,15 +326,44 @@ function computeAndRenderPlot(seq, windowSize, plotType) {
     };
 }
 
-function estimatePi(seq) {
-    let pos = 0, neg = 0;
-    for (const c of seq) {
-        if (c === 'K' || c === 'R') pos++;
-        else if (c === 'D' || c === 'E') neg++;
-        else if (c === 'H') pos += 0.5;
+/**
+ * Format the raw whole-sequence figures from core into the display strings the
+ * stats panel shows.
+ *
+ * @param {string} metric
+ * @param {Object} stats
+ * @returns {{[label: string]: string}}
+ */
+function formatGlobalStats(metric, stats) {
+    switch (metric) {
+        case 'gc_content':
+            return {
+                'Overall GC': stats.overallGc.toFixed(1) + '%',
+                'AT/GC Ratio': stats.atGcRatio.toFixed(2),
+                'Length': stats.length.toLocaleString() + ' bp',
+            };
+        case 'cpg':
+            return {
+                'CpG sites': stats.cpgSites.toString(),
+                'CpG density': stats.cpgDensityPer100bp.toFixed(1) + '/100bp',
+            };
+        case 'hydrophobicity':
+            return {
+                'Avg Hydrophobicity': stats.averageHydrophobicity.toFixed(2),
+                'GRAVY': stats.averageHydrophobicity.toFixed(3),
+                'Length': stats.length.toLocaleString() + ' aa',
+            };
+        case 'charge':
+            return {
+                'Total Net Charge': stats.totalNetCharge.toFixed(1),
+                'Est. Isoelectric Point (pI)': stats.isoelectricPoint,
+            };
+        case 'molecular_weight':
+            return {
+                'Total MW': (stats.totalMw / 1000).toFixed(1) + ' kDa',
+                'Avg Residue MW': stats.averageResidueMw.toFixed(1) + ' Da',
+            };
+        default:
+            return {};
     }
-    // Very rough pI estimation
-    if (pos > neg) return '> 7.0 (Basic)';
-    if (neg > pos) return '< 7.0 (Acidic)';
-    return '~ 7.0 (Neutral)';
 }

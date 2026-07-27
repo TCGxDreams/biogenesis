@@ -3,7 +3,12 @@
 // ============================================
 
 // Codon table (standard genetic code)
-export const CODON_TABLE = {
+/**
+ * The standard genetic code: 64 codons to one-letter residues, `*` for stops.
+ *
+ * @type {{[codon: string]: string}}
+ */
+export const CODON_TABLE = /** @type {{[codon: string]: string}} */ ({
     'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L', 'CTT': 'L', 'CTC': 'L', 'CTA': 'L', 'CTG': 'L',
     'ATT': 'I', 'ATC': 'I', 'ATA': 'I', 'ATG': 'M', 'GTT': 'V', 'GTC': 'V', 'GTA': 'V', 'GTG': 'V',
     'TCT': 'S', 'TCC': 'S', 'TCA': 'S', 'TCG': 'S', 'CCT': 'P', 'CCC': 'P', 'CCA': 'P', 'CCG': 'P',
@@ -12,36 +17,86 @@ export const CODON_TABLE = {
     'AAT': 'N', 'AAC': 'N', 'AAA': 'K', 'AAG': 'K', 'GAT': 'D', 'GAC': 'D', 'GAA': 'E', 'GAG': 'E',
     'TGT': 'C', 'TGC': 'C', 'TGA': '*', 'TGG': 'W', 'CGT': 'R', 'CGC': 'R', 'CGA': 'R', 'CGG': 'R',
     'AGT': 'S', 'AGC': 'S', 'AGA': 'R', 'AGG': 'R', 'GGT': 'G', 'GGC': 'G', 'GGA': 'G', 'GGG': 'G'
-};
+});
 
-export const COMPLEMENT = { 'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', 'U': 'A', 'a': 't', 't': 'a', 'c': 'g', 'g': 'c', 'u': 'a' };
+/**
+ * Base complements, in both cases. U maps to A, so complementing RNA yields
+ * DNA-alphabet output.
+ *
+ * @type {{[base: string]: string}}
+ */
+export const COMPLEMENT = /** @type {{[base: string]: string}} */ ({ 'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', 'U': 'A', 'a': 't', 't': 'a', 'c': 'g', 'g': 'c', 'u': 'a' });
 
-export const AA_WEIGHTS = {
+/**
+ * Free amino acid masses in daltons; peptide bonds subtract one water each.
+ *
+ * @type {{[residue: string]: number}}
+ */
+export const AA_WEIGHTS = /** @type {{[residue: string]: number}} */ ({
     'A': 89.09, 'R': 174.20, 'N': 132.12, 'D': 133.10, 'C': 121.16, 'E': 147.13, 'Q': 146.15,
     'G': 75.03, 'H': 155.16, 'I': 131.17, 'L': 131.17, 'K': 146.19, 'M': 149.21, 'F': 165.19,
     'P': 115.13, 'S': 105.09, 'T': 119.12, 'W': 204.23, 'Y': 181.19, 'V': 117.15
-};
+});
 
-export const NT_WEIGHTS = { 'A': 331.2, 'T': 322.2, 'C': 307.2, 'G': 347.2, 'U': 308.2 };
+/**
+ * Nucleotide monophosphate masses in daltons.
+ *
+ * @type {{[base: string]: number}}
+ */
+export const NT_WEIGHTS = /** @type {{[base: string]: number}} */ ({ 'A': 331.2, 'T': 322.2, 'C': 307.2, 'G': 347.2, 'U': 308.2 });
 
 // ---- Sequence manipulation ----
 
+/**
+ * Complement each base, preserving case. Unknown characters pass through.
+ *
+ * @param {string} seq
+ * @returns {string}
+ */
 export function complement(seq) {
     return seq.split('').map(c => COMPLEMENT[c] || c).join('');
 }
 
+/**
+ * Reverse complement: complement each base, then reverse the string.
+ *
+ * @param {string} seq
+ * @returns {string}
+ */
 export function reverseComplement(seq) {
     return complement(seq).split('').reverse().join('');
 }
 
+/**
+ * DNA to RNA: replace T with U, preserving case.
+ *
+ * @param {string} dnaSeq
+ * @returns {string}
+ */
 export function transcribe(dnaSeq) {
     return dnaSeq.replace(/T/gi, m => m === 'T' ? 'U' : 'u');
 }
 
+/**
+ * RNA to DNA: replace U with T, preserving case.
+ *
+ * @param {string} rnaSeq
+ * @returns {string}
+ */
 export function reverseTranscribe(rnaSeq) {
     return rnaSeq.replace(/U/gi, m => m === 'U' ? 'T' : 't');
 }
 
+/**
+ * Translate a nucleotide sequence in one reading frame.
+ *
+ * A trailing partial codon is dropped; codons outside the standard table
+ * translate to `X`.
+ *
+ * @param {string} dnaSeq
+ * @param {number} [frame=0] Offset 0, 1 or 2.
+ * @returns {string} Residues, `*` for stops.
+ */
 export function translate(dnaSeq, frame = 0) {
     const seq = dnaSeq.toUpperCase();
     let protein = '';
@@ -54,6 +109,12 @@ export function translate(dnaSeq, frame = 0) {
 
 // ---- Statistics ----
 
+/**
+ * GC content as a percentage of the ACGTU characters present.
+ *
+ * @param {string} seq
+ * @returns {number} 0-100; 0 for a sequence with no ACGTU characters.
+ */
 export function gcContent(seq) {
     const upper = seq.toUpperCase();
     const gc = (upper.split('').filter(c => c === 'G' || c === 'C').length);
@@ -61,8 +122,15 @@ export function gcContent(seq) {
     return total > 0 ? (gc / total * 100) : 0;
 }
 
+/**
+ * Count each base, bucketing everything else into `other`.
+ *
+ * @param {string} seq
+ * @returns {{A: number, T: number, C: number, G: number, U: number, other: number}}
+ */
 export function nucleotideComposition(seq) {
     const upper = seq.toUpperCase();
+    /** @type {{A: number, T: number, C: number, G: number, U: number, other: number, [k: string]: number}} */
     const comp = { A: 0, T: 0, C: 0, G: 0, U: 0, other: 0 };
     for (const c of upper) {
         if (comp.hasOwnProperty(c)) comp[c]++;
@@ -71,6 +139,16 @@ export function nucleotideComposition(seq) {
     return comp;
 }
 
+/**
+ * Molecular weight in daltons.
+ *
+ * Proteins add one water for the free termini and subtract one per peptide
+ * bond; nucleic acids sum monophosphate masses.
+ *
+ * @param {string} seq
+ * @param {'dna'|'rna'|'protein'|string} [type='dna']
+ * @returns {number}
+ */
 export function molecularWeight(seq, type = 'dna') {
     const upper = seq.toUpperCase();
     if (type === 'protein') {
@@ -87,6 +165,13 @@ export function molecularWeight(seq, type = 'dna') {
     return weight;
 }
 
+/**
+ * Melting temperature: the Wallace rule below 14 nt, the salt-adjusted formula
+ * at 14 nt and above.
+ *
+ * @param {string} seq
+ * @returns {number} °C; 0 for an empty sequence.
+ */
 export function meltingTemp(seq) {
     const upper = seq.toUpperCase();
     const len = upper.length;
@@ -100,7 +185,7 @@ export function meltingTemp(seq) {
 
 // Nearest-Neighbor Thermodynamics (SantaLucia 1998)
 // ΔH (kcal/mol), ΔS (cal/K·mol)
-const NN_PARAMS = {
+const NN_PARAMS = /** @type {{[pair: string]: {dH: number, dS: number}}} */ ({
     'AA': { dH: -7.9, dS: -22.2 }, 'TT': { dH: -7.9, dS: -22.2 },
     'AT': { dH: -7.2, dS: -20.4 }, 'TA': { dH: -7.2, dS: -21.3 },
     'CA': { dH: -8.5, dS: -22.7 }, 'TG': { dH: -8.5, dS: -22.7 },
@@ -112,8 +197,19 @@ const NN_PARAMS = {
     // Initiation penalties
     'initA': { dH: 2.3, dS: 4.1 }, 'initT': { dH: 2.3, dS: 4.1 },
     'initG': { dH: 0.1, dS: -2.8 }, 'initC': { dH: 0.1, dS: -2.8 },
-};
+});
 
+/**
+ * Melting temperature by nearest-neighbour thermodynamics (SantaLucia 1998),
+ * with a Schildkraut-Lifson salt correction.
+ *
+ * Falls back to {@link meltingTemp} below 8 nt, where the model does not apply.
+ *
+ * @param {string} seq
+ * @param {number} [primerConc=5e-8] Primer concentration, molar.
+ * @param {number} [naConc=0.05] Sodium concentration, molar.
+ * @returns {number} °C, never negative.
+ */
 export function calculateTmNN(seq, primerConc = 50e-9, naConc = 0.05) {
     const upper = seq.toUpperCase().replace(/[^ATCG]/g, '');
     if (upper.length < 8) return meltingTemp(upper); // fallback for very short
@@ -154,6 +250,15 @@ export function calculateTmNN(seq, primerConc = 50e-9, naConc = 0.05) {
 
 // ---- ORF Finding ----
 
+/**
+ * Find open reading frames on the forward strand, in all three frames.
+ *
+ * An ATG opens an ORF and the next in-frame stop closes it.
+ *
+ * @param {string} seq
+ * @param {number} [minLength=30] Shortest ORF reported, in nucleotides.
+ * @returns {import('../core/types.js').Orf[]} Longest first.
+ */
 export function findORFs(seq, minLength = 30) {
     const upper = seq.toUpperCase();
     const orfs = [];
@@ -177,6 +282,15 @@ export function findORFs(seq, minLength = 30) {
 
 // ---- Sequence type detection ----
 
+/**
+ * Guess whether a sequence is DNA, RNA or protein.
+ *
+ * Residues that cannot be nucleotides decide it for protein; otherwise U
+ * without T means RNA, and a high ACGTN fraction means DNA.
+ *
+ * @param {string} seq
+ * @returns {'dna'|'rna'|'protein'|'unknown'} `unknown` only for empty input.
+ */
 export function detectSequenceType(seq) {
     const upper = seq.toUpperCase().replace(/[\s\d\n\r*]/g, '');
     const dnaChars = new Set('ATCGN');
@@ -202,6 +316,12 @@ export function detectSequenceType(seq) {
 
 // ---- Color coding ----
 
+/**
+ * CSS class for colour-coding a nucleotide.
+ *
+ * @param {string} char
+ * @returns {string} Empty string when the character has no class.
+ */
 export function getNucleotideClass(char) {
     const c = char.toUpperCase();
     switch (c) {
@@ -215,6 +335,12 @@ export function getNucleotideClass(char) {
     }
 }
 
+/**
+ * CSS class grouping an amino acid by chemistry.
+ *
+ * @param {string} char
+ * @returns {string} Empty string when the character has no class.
+ */
 export function getAminoAcidClass(char) {
     const c = char.toUpperCase();
     if ('AILMFWVP'.includes(c)) return 'aa-hydrophobic';
@@ -227,6 +353,13 @@ export function getAminoAcidClass(char) {
 
 // ---- File Parsers ----
 
+/**
+ * Parse FASTA text into records. Handles multiple records, wrapped lines,
+ * blank lines and CRLF endings. Text before the first `>` is ignored.
+ *
+ * @param {string} text
+ * @returns {import('../core/types.js').FastaRecord[]}
+ */
 export function parseFasta(text) {
     const sequences = [];
     const lines = text.split('\n');
@@ -254,7 +387,15 @@ export function parseFasta(text) {
     return sequences;
 }
 
+/**
+ * Parse GenBank text into records, converting 1-based feature locations to
+ * 0-based half-open coordinates. Records with no ORIGIN block are skipped.
+ *
+ * @param {string} text
+ * @returns {import('../core/types.js').GenBankRecord[]}
+ */
 export function parseGenBank(text) {
+    /** @type {import('../core/types.js').GenBankRecord[]} */
     const sequences = [];
     const entries = text.split('//').filter(e => e.trim());
 
@@ -285,13 +426,13 @@ export function parseGenBank(text) {
                 const featureMatch = line.match(/^\s{5}(\S+)\s+(complement\()?(\d+)\.\.(\d+)\)?/);
                 if (featureMatch) {
                     if (currentFeature) features.push(currentFeature);
-                    currentFeature = {
+                    currentFeature = /** @type {import('../core/types.js').GenBankFeature} */ ({
                         type: featureMatch[1],
                         start: parseInt(featureMatch[3]) - 1,
                         end: parseInt(featureMatch[4]),
                         complement: !!featureMatch[2],
                         qualifiers: {}
-                    };
+                    });
                 } else if (currentFeature) {
                     const qualMatch = line.match(/^\s+\/(\w+)="?([^"]*)"?/);
                     if (qualMatch) {
@@ -309,7 +450,7 @@ export function parseGenBank(text) {
                 sequence: sequence.toUpperCase(),
                 type: detectSequenceType(sequence),
                 features,
-                format: 'genbank'
+                format: /** @type {'genbank'} */ ('genbank')
             });
         }
     }
@@ -318,6 +459,14 @@ export function parseGenBank(text) {
 
 // ---- Exporters ----
 
+/**
+ * Serialise one record as FASTA, wrapping the sequence.
+ *
+ * @param {string} name Header text, written after the `>`.
+ * @param {string} sequence
+ * @param {number} [lineWidth=70] Residues per line.
+ * @returns {string} Always ends with a newline.
+ */
 export function toFasta(name, sequence, lineWidth = 70) {
     let fasta = `>${name}\n`;
     for (let i = 0; i < sequence.length; i += lineWidth) {
@@ -326,6 +475,18 @@ export function toFasta(name, sequence, lineWidth = 70) {
     return fasta;
 }
 
+/**
+ * Trigger a browser download of in-memory content.
+ *
+ * TODO(layering): this touches the DOM and does not belong in `src/utils/`.
+ * Move it to a browser-side module so the pure-layer lint rule can be raised
+ * from `warn` to `error`. See AGENTS.md.
+ *
+ * @param {string} content
+ * @param {string} filename
+ * @param {string} [mimeType='text/plain']
+ * @returns {void}
+ */
 export function downloadFile(content, filename, mimeType = 'text/plain') {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
@@ -338,6 +499,13 @@ export function downloadFile(content, filename, mimeType = 'text/plain') {
 
 // ---- External DB Mapping ----
 
+/**
+ * Look up a UniProt accession for a query, preferring reviewed (Swiss-Prot)
+ * entries. Any version suffix on the query is stripped.
+ *
+ * @param {string} query Accession or keyword.
+ * @returns {Promise<string|null>} Null when nothing matches or the request fails.
+ */
 export async function fetchUniProtId(query) {
     if (!query) return null;
     // Strip version number from accession (e.g., NP_000537.1 -> NP_000537)
@@ -351,7 +519,10 @@ export async function fetchUniProtId(query) {
         const data = await res.json();
         if (data.results && data.results.length > 0) {
             // Find a reviewed (Swiss-Prot) entry if possible, otherwise take the first
-            const reviewed = data.results.find(r => r.entryType === 'UniProtKB reviewed (Swiss-Prot)');
+            const reviewed = data.results.find(
+                /** @param {{entryType: string}} r */ r =>
+                    r.entryType === 'UniProtKB reviewed (Swiss-Prot)'
+            );
             return reviewed ? reviewed.primaryAccession : data.results[0].primaryAccession;
         }
     } catch (e) {

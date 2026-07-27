@@ -2,6 +2,12 @@
 // BioGenesis — Restriction Enzyme Database (v2 — 100+ enzymes)
 // ============================================
 
+/**
+ * The raw enzyme table, which contains a few duplicate entries.
+ * Prefer {@link RESTRICTION_ENZYMES_UNIQUE}.
+ *
+ * @type {import('../core/types.js').Enzyme[]}
+ */
 export const RESTRICTION_ENZYMES = [
     // === 6-CUTTER COMMON (cloning workhorses) ===
     { name: 'EcoRI', site: 'GAATTC', cut: 1, cutComplement: 5, overhang: '5prime', group: 'common' },
@@ -145,6 +151,11 @@ export const RESTRICTION_ENZYMES = [
 
 // Deduplicate by name+site
 const seen = new Set();
+/**
+ * The enzyme panel, deduplicated by name+site and sorted by name.
+ *
+ * @type {import('../core/types.js').Enzyme[]}
+ */
 export const RESTRICTION_ENZYMES_UNIQUE = RESTRICTION_ENZYMES.filter(e => {
     const key = `${e.name}_${e.site}`;
     if (seen.has(key)) return false;
@@ -153,6 +164,15 @@ export const RESTRICTION_ENZYMES_UNIQUE = RESTRICTION_ENZYMES.filter(e => {
 }).sort((a, b) => a.name.localeCompare(b.name));
 
 // Find restriction sites in a sequence
+/**
+ * Find where each enzyme of a panel cuts a sequence. IUPAC ambiguity codes in
+ * recognition sites are expanded, and overlapping occurrences are reported.
+ *
+ * @param {string} sequence
+ * @param {import('../core/types.js').Enzyme[]} [enzymes] Panel to search.
+ * @returns {import('../core/types.js').RestrictionSite[]} Enzymes that cut at
+ *   least once, sorted by name.
+ */
 export function findRestrictionSites(sequence, enzymes = RESTRICTION_ENZYMES_UNIQUE) {
     const upper = sequence.toUpperCase();
     const results = [];
@@ -195,6 +215,16 @@ export function findRestrictionSites(sequence, enzymes = RESTRICTION_ENZYMES_UNI
 }
 
 // Simulate restriction digest — returns fragment sizes
+/**
+ * Cut a sequence at the given sites and return the fragments.
+ *
+ * The sequence is treated as linear, so `n` cuts yield `n + 1` fragments whose
+ * sizes sum to the sequence length.
+ *
+ * @param {string} sequence
+ * @param {import('../core/types.js').RestrictionSite[]} enzymes Sites to cut at.
+ * @returns {import('../core/types.js').Fragment[]} Largest first.
+ */
 export function simulateDigest(sequence, enzymes) {
     const seqLen = sequence.length;
     const cutPositions = new Set([0, seqLen]);
@@ -226,6 +256,15 @@ export function simulateDigest(sequence, enzymes) {
 }
 
 // Render virtual gel electrophoresis (improved)
+/**
+ * Draw a virtual agarose gel with a log-scale ladder.
+ *
+ * @param {Array<{size: number}>} fragments
+ * @param {number} seqLength Undigested length, used as the top of the scale.
+ * @param {number} [width=180]
+ * @param {number} [height=380]
+ * @returns {string} SVG markup.
+ */
 export function renderGelSVG(fragments, seqLength, width = 180, height = 380) {
     const margin = { top: 45, bottom: 15 };
     const plotHeight = height - margin.top - margin.bottom;
@@ -234,6 +273,7 @@ export function renderGelSVG(fragments, seqLength, width = 180, height = 380) {
     const logMax = Math.log10(maxSize);
     const logMin = Math.log10(minSize);
 
+    /** @param {number} size */
     const yPos = size => {
         const logS = Math.log10(Math.max(size, 1));
         return margin.top + ((logMax - logS) / Math.max(logMax - logMin, 1)) * plotHeight;

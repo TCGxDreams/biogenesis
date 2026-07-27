@@ -1,8 +1,11 @@
+// @ts-nocheck -- TODO(T4): this layer is untyped until main.js is decomposed
+//                and the components are rewired onto the typed core contract.
 // ============================================
 // BioGenesis — Restriction Analysis Component v2
 // ============================================
 
-import { findRestrictionSites, RESTRICTION_ENZYMES_UNIQUE, simulateDigest, renderGelSVG } from '../utils/restriction.js';
+import { renderGelSVG } from '../utils/restriction.js';
+import { surveySites, analyseDigest } from '../core/restriction-report.js';
 
 export function renderRestrictionAnalysis(seq) {
   if (seq.type === 'protein') {
@@ -12,21 +15,12 @@ export function renderRestrictionAnalysis(seq) {
         </div>`;
   }
 
-  const allResults = findRestrictionSites(seq.sequence);
-  const totalCuts = allResults.reduce((sum, r) => sum + r.numCuts, 0);
-  const uniqueCutters = allResults.filter(r => r.numCuts === 1);
-  const nonCutters = RESTRICTION_ENZYMES_UNIQUE.length - allResults.length;
-  const seqLen = seq.sequence.length;
+  const survey = surveySites(seq.sequence);
+  const allResults = survey.sites;
+  const { totalCuts, uniqueCutterCount, nonCutterCount } = survey.summary;
+  const seqLen = survey.sequenceLength;
 
-  // Group stats
-  const groups = { common: 0, '4cutter': 0, rare: 0, golden: 0, methylation: 0 };
-  allResults.forEach(r => { if (groups[r.group] !== undefined) groups[r.group]++; });
-
-  // Cut map SVG (compact)
-  const allCuts = allResults.flatMap(r => r.positions.map(p => ({ pos: p, enzyme: r.name, color: overhangColor(r.overhang) })));
-  allCuts.sort((a, b) => a.pos - b.pos);
-
-  const cutMapSvg = buildCutMapSVG(allCuts, seqLen);
+  const cutMapSvg = buildCutMapSVG(survey.cutMap, seqLen);
 
   // Enzyme table rows
   const enzymeRows = allResults.map((r, idx) => `
@@ -57,9 +51,9 @@ export function renderRestrictionAnalysis(seq) {
       <!-- Stats row -->
       <div class="panel-controls" style="gap:12px;flex-wrap:nowrap;overflow-x:auto;">
         <div class="re-stat"><span class="re-stat-val">${allResults.length}</span><span class="re-stat-lbl">Cutters</span></div>
-        <div class="re-stat"><span class="re-stat-val" style="color:var(--accent-cyan)">${uniqueCutters.length}</span><span class="re-stat-lbl">Unique</span></div>
+        <div class="re-stat"><span class="re-stat-val" style="color:var(--accent-cyan)">${uniqueCutterCount}</span><span class="re-stat-lbl">Unique</span></div>
         <div class="re-stat"><span class="re-stat-val">${totalCuts}</span><span class="re-stat-lbl">Total cuts</span></div>
-        <div class="re-stat"><span class="re-stat-val" style="color:var(--text-muted)">${nonCutters}</span><span class="re-stat-lbl">Non-cutters</span></div>
+        <div class="re-stat"><span class="re-stat-val" style="color:var(--text-muted)">${nonCutterCount}</span><span class="re-stat-lbl">Non-cutters</span></div>
         <div style="flex:1"></div>
         <!-- Filter controls -->
         <label class="form-label" style="white-space:nowrap">Filter:</label>
@@ -130,9 +124,9 @@ function buildCutMapSVG(cuts, seqLen) {
   svg += `<text x="${w}" y="12" fill="var(--text-muted)" font-size="8" font-family="monospace" text-anchor="end">${seqLen.toLocaleString()}</text>`;
 
   for (const cut of shown) {
-    const x = (cut.pos / seqLen * w).toFixed(1);
-    svg += `<line x1="${x}" y1="12" x2="${x}" y2="26" stroke="${cut.color}" stroke-width="1.2" opacity="0.8">
-          <title>${cut.enzyme} @${cut.pos + 1}</title></line>`;
+    const x = (cut.position / seqLen * w).toFixed(1);
+    svg += `<line x1="${x}" y1="12" x2="${x}" y2="26" stroke="${overhangColor(cut.overhang)}" stroke-width="1.2" opacity="0.8">
+          <title>${cut.enzyme} @${cut.position + 1}</title></line>`;
   }
 
   svg += '</svg>';
@@ -151,9 +145,7 @@ export function renderDigestResult(seq, selectedEnzymeNames) {
       `<p style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:8px;">Select enzymes above</p>`;
   }
 
-  const allResults = findRestrictionSites(seq.sequence);
-  const selectedEnzymes = allResults.filter(r => selectedEnzymeNames.includes(r.name));
-  const fragments = simulateDigest(seq.sequence, selectedEnzymes);
+  const { fragments } = analyseDigest(seq.sequence, selectedEnzymeNames);
 
   let html = renderGelSVG(fragments, seq.sequence.length);
   html += `<div style="margin-top:10px;font-size:11px;width:100%;">

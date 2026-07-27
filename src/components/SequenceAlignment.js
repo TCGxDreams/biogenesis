@@ -1,8 +1,11 @@
+// @ts-nocheck -- TODO(T4): this layer is untyped until main.js is decomposed
+//                and the components are rewired onto the typed core contract.
 // ============================================
 // BioGenesis — Sequence Alignment Component v2
 // ============================================
 
-import { needlemanWunsch, smithWaterman, multipleAlignment, generateConsensus } from '../utils/alignment.js';
+import { buildAlignmentReport } from '../core/alignment-report.js';
+import { BioError } from '../core/errors.js';
 import { getNucleotideClass, getAminoAcidClass } from '../utils/bioUtils.js';
 
 export function renderAlignment(sequences) {
@@ -72,80 +75,50 @@ export function renderAlignment(sequences) {
   `;
 }
 
+/**
+ * Render the alignment result. All computation lives in
+ * `src/core/alignment-report.js`; this function only draws the report.
+ *
+ * @param {Array<{name: string, sequence: string, type?: string}>} selectedSeqs
+ * @param {'msa'|'nw'|'sw'} [algo]
+ * @returns {string} HTML
+ */
 export function computeAndRenderAlignment(selectedSeqs, algo = 'msa') {
-  if (selectedSeqs.length < 2) {
-    return `<div class="empty-state"><p class="empty-state-text" style="color:var(--accent-orange);">Please select at least 2 sequences.</p></div>`;
+  let report;
+  try {
+    report = buildAlignmentReport(selectedSeqs, { algorithm: algo });
+  } catch (e) {
+    if (e instanceof BioError) return renderAlignmentError(e);
+    throw e;
   }
 
-  if ((algo === 'nw' || algo === 'sw') && selectedSeqs.length > 2) {
-    return `<div class="empty-state"><p class="empty-state-text" style="color:var(--accent-orange);">Needleman-Wunsch and Smith-Waterman only support 2 sequences.</p><p style="font-size:11px;color:var(--text-muted);margin-top:8px;">Change algorithm to "Progressive MSA" or select exactly 2 sequences.</p></div>`;
-  }
+  const { isProtein, consensus, conservation, pairwise } = report;
+  const alignedStrings = report.rows.map(r => r.aligned);
+  const seqsObj = report.rows.map(r => ({ name: r.name }));
 
-  // Determine type (if any is protein, treat as protein alignment)
-  const isProtein = selectedSeqs.some(s => s.type === 'protein');
-
-  // Limit length to avoid crashing the browser tab
-  const MAX_LEN = 3000;
-  const seqsObj = selectedSeqs.map(s => ({
-    name: s.name,
-    seq: s.sequence.substring(0, Math.min(s.sequence.length, MAX_LEN))
-  }));
-
-  let alignedStrings = [];
-  let statsHtml = '';
-
-  if (algo === 'msa') {
-    // MSA
-    const sequencesOnly = seqsObj.map(s => s.seq);
-    alignedStrings = multipleAlignment(sequencesOnly, isProtein);
-
+  let statsHtml;
+  if (pairwise === null) {
     statsHtml = `
           <div class="stats-grid" style="margin-bottom:16px;">
             <div class="stat-card"><div class="stat-title">Sequences</div><div class="stat-value">${alignedStrings.length}</div></div>
-            <div class="stat-card"><div class="stat-title">Alignment Length</div><div class="stat-value">${alignedStrings[0].length}<span class="stat-unit">${isProtein ? 'aa' : 'bp'}</span></div></div>
+            <div class="stat-card"><div class="stat-title">Alignment Length</div><div class="stat-value">${report.length}<span class="stat-unit">${isProtein ? 'aa' : 'bp'}</span></div></div>
             <div class="stat-card"><div class="stat-title">Algorithm</div><div class="stat-value" style="font-size:15px;">Progressive MSA</div></div>
           </div>
         `;
   } else {
-    // Pairwise
-    let res;
-    if (algo === 'nw') res = needlemanWunsch(seqsObj[0].seq, seqsObj[1].seq, isProtein);
-    else res = smithWaterman(seqsObj[0].seq, seqsObj[1].seq, isProtein);
-
-    alignedStrings = [res.aligned1, res.aligned2];
     statsHtml = `
           <div class="stats-grid" style="margin-bottom:16px;">
-            <div class="stat-card"><div class="stat-title">Identity</div><div class="stat-value">${res.identity.toFixed(1)}<span class="stat-unit">%</span></div></div>
-            <div class="stat-card"><div class="stat-title">Gaps</div><div class="stat-value">${res.gaps}</div></div>
-            <div class="stat-card"><div class="stat-title">Score</div><div class="stat-value">${res.score}</div></div>
-            <div class="stat-card"><div class="stat-title">Length</div><div class="stat-value">${res.aligned1.length}<span class="stat-unit">${isProtein ? 'aa' : 'bp'}</span></div></div>
+            <div class="stat-card"><div class="stat-title">Identity</div><div class="stat-value">${pairwise.identity.toFixed(1)}<span class="stat-unit">%</span></div></div>
+            <div class="stat-card"><div class="stat-title">Gaps</div><div class="stat-value">${pairwise.gaps}</div></div>
+            <div class="stat-card"><div class="stat-title">Score</div><div class="stat-value">${pairwise.score}</div></div>
+            <div class="stat-card"><div class="stat-title">Length</div><div class="stat-value">${pairwise.length}<span class="stat-unit">${isProtein ? 'aa' : 'bp'}</span></div></div>
           </div>
         `;
   }
 
   // Build the visualization blocks
-  const consensus = generateConsensus(alignedStrings);
   const blockSize = 80; // characters per row
   let blocksHtml = '';
-
-  // Pre-calculate identity array for the conservation bar
-  const conservation = [];
-  for (let i = 0; i < consensus.length; i++) {
-    let matchCount = 0;
-    let validCount = 0;
-    const consChar = consensus[i];
-    if (consChar === '-') {
-      conservation.push(0);
-      continue;
-    }
-    for (const str of alignedStrings) {
-      if (str[i] !== '-') {
-        validCount++;
-        if (str[i].toUpperCase() === consChar.toUpperCase()) matchCount++;
-      }
-    }
-    conservation.push(validCount > 0 ? matchCount / alignedStrings.length : 0);
-  }
 
   for (let i = 0; i < consensus.length; i += blockSize) {
     const end = Math.min(i + blockSize, consensus.length);
@@ -207,6 +180,14 @@ export function computeAndRenderAlignment(selectedSeqs, algo = 'msa') {
         ${blocksHtml}
       </div>
     `;
+}
+
+/** @param {BioError} e */
+function renderAlignmentError(e) {
+  if (e.code === 'PAIRWISE_TOO_MANY_SEQUENCES') {
+    return `<div class="empty-state"><p class="empty-state-text" style="color:var(--accent-orange);">${escapeHtml(e.message)}</p><p style="font-size:11px;color:var(--text-muted);margin-top:8px;">Change algorithm to "Progressive MSA" or select exactly 2 sequences.</p></div>`;
+  }
+  return `<div class="empty-state"><p class="empty-state-text" style="color:var(--accent-orange);">${escapeHtml(e.message)}</p></div>`;
 }
 
 // Clustal-like coloring with dotting identical characters against consensus

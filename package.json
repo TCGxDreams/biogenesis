@@ -1,15 +1,30 @@
 {
-  "name": "app-geneious-prime",
+  "name": "biogenesis",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p jsconfig.json",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "tool": "node tools/run.js",
+    "serve:core": "node tools/serve.js"
   },
   "devDependencies": {
-    "vite": "^7.3.1"
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.39.0",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2",
+    "typescript": "^7.0.2",
+    "vite": "^7.3.1",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "3dmol": "^2.5.4"
