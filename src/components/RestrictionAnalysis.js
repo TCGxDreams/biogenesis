@@ -10,7 +10,7 @@ import { surveySites, analyseDigest } from '../core/restriction-report.js';
 export function renderRestrictionAnalysis(seq) {
   if (seq.type === 'protein') {
     return `<div class="panel active">
-          <div class="panel-header"><h2>Restriction Analysis</h2><p>Requires a DNA sequence</p></div>
+          <div class="panel-header"><h2><span data-i18n="Restriction Analysis">Restriction Analysis</span></h2><p>Requires a DNA sequence</p></div>
           <div class="panel-body"><div class="empty-state"><span class="empty-state-icon">🔬</span><p class="empty-state-text">Select a DNA sequence</p></div></div>
         </div>`;
   }
@@ -44,7 +44,7 @@ export function renderRestrictionAnalysis(seq) {
   return `
     <div class="panel active" id="panel-restriction">
       <div class="panel-header">
-        <h2>Restriction Analysis</h2>
+        <h2><span data-i18n="Restriction Analysis">Restriction Analysis</span></h2>
         <p>${escapeHtml(seq.name)} · ${seqLen.toLocaleString()} bp · ${allResults.length} enzymes · ${totalCuts} cuts</p>
       </div>
 

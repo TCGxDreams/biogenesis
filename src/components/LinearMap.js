@@ -20,7 +20,7 @@ export function renderLinearMap(seq) {
   if (annotations.length === 0 && uniqueCutSites.length === 0) {
     return `
       <div class="panel active">
-        <div class="panel-header"><h2>Linear Map</h2><p>${escapeHtml(seq.name)} — ${len.toLocaleString()} ${seq.type === 'protein' ? 'aa' : 'bp'}</p></div>
+        <div class="panel-header"><h2><span data-i18n="Linear Map">Linear Map</span></h2><p>${escapeHtml(seq.name)} — ${len.toLocaleString()} ${seq.type === 'protein' ? 'aa' : 'bp'}</p></div>
         <div class="panel-body">
           ${buildLinearMapSVG(seq, [], [])}
           <div style="margin-top:20px;padding:24px;border:1px dashed var(--border-default);border-radius:var(--radius-md);text-align:center;color:var(--text-muted);font-size:13px;">No features or unique cut sites to display. Use the Sequence Editor to add features.</div>
@@ -32,7 +32,7 @@ export function renderLinearMap(seq) {
     <div class="panel active">
       <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <h2>Linear Map</h2>
+          <h2><span data-i18n="Linear Map">Linear Map</span></h2>
           <p>${escapeHtml(seq.name)} — ${len.toLocaleString()} ${seq.type === 'protein' ? 'aa' : 'bp'} | ${annotations.length} feature(s)</p>
         </div>
         <!-- Align toggles on the right -->
@@ -214,12 +214,12 @@ function buildFeatureTable(annotations, len) {
           <thead style="background:var(--bg-tertiary);border-bottom:1px solid var(--border-default);">
              <tr>
                <th style="padding:12px;color:var(--text-muted);font-weight:600;">#</th>
-               <th style="padding:12px;color:var(--text-muted);font-weight:600;">Name</th>
-               <th style="padding:12px;color:var(--text-muted);font-weight:600;">Type</th>
+               <th style="padding:12px;color:var(--text-muted);font-weight:600;"><span data-i18n="Name">Name</span></th>
+               <th style="padding:12px;color:var(--text-muted);font-weight:600;"><span data-i18n="Type">Type</span></th>
                <th style="padding:12px;color:var(--text-muted);font-weight:600;">Start</th>
                <th style="padding:12px;color:var(--text-muted);font-weight:600;">End</th>
-               <th style="padding:12px;color:var(--text-muted);font-weight:600;">Length</th>
-               <th style="padding:12px;color:var(--text-muted);font-weight:600;">Strand</th>
+               <th style="padding:12px;color:var(--text-muted);font-weight:600;"><span data-i18n="Length">Length</span></th>
+               <th style="padding:12px;color:var(--text-muted);font-weight:600;"><span data-i18n="Strand">Strand</span></th>
              </tr>
           </thead>
           <tbody>${rows}</tbody>

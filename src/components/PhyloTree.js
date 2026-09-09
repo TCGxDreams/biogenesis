@@ -4,6 +4,8 @@
 // BioGenesis — Phylogenetic Tree Component
 // ============================================
 
+import { escapeHtml } from '../app/ui.js';
+
 import { renderTreeSVG } from '../utils/phylo.js';
 import { buildTree } from '../core/phylo-report.js';
 import { BioError } from '../core/errors.js';
@@ -14,7 +16,7 @@ export function renderPhyloTree(sequences) {
   if (allSeqs.length < 3) {
     return `
         <div class="panel active">
-          <div class="panel-header"><h2>Phylogenetic Tree</h2><p>Evolutionary relationships and distances</p></div>
+          <div class="panel-header"><h2><span data-i18n="Phylogenetic Tree">Phylogenetic Tree</span></h2><p>Evolutionary relationships and distances</p></div>
           <div class="panel-body"><div class="empty-state"><span class="empty-state-icon">🌳</span><p class="empty-state-text">Please import at least 3 sequences to build a tree.</p></div></div>
         </div>`;
   }
@@ -33,12 +35,12 @@ export function renderPhyloTree(sequences) {
     <div class="panel active">
       <div class="panel-header" style="display:flex;justify-content:space-between;align-items:flex-end;">
         <div>
-          <h2>Phylogenetic Tree</h2>
+          <h2><span data-i18n="Phylogenetic Tree">Phylogenetic Tree</span></h2>
           <p>Construct a Neighbor-Joining tree from selected sequences</p>
         </div>
         <div style="display:flex;gap:8px;" id="phylo-export-group">
-            <button class="btn btn-secondary" id="phylo-export-svg-btn" style="font-size:11px;padding:6px 14px;display:none;">↓ Export SVG</button>
-            <button class="btn btn-secondary" id="phylo-export-newick-btn" style="font-size:11px;padding:6px 14px;display:none;">↓ Export Newick</button>
+            <button class="btn btn-secondary" id="phylo-export-svg-btn" style="font-size:11px;padding:6px 14px;display:none;"><span data-i18n="↓ Export SVG">↓ Export SVG</span></button>
+            <button class="btn btn-secondary" id="phylo-export-newick-btn" style="font-size:11px;padding:6px 14px;display:none;"><span data-i18n="↓ Export Newick">↓ Export Newick</span></button>
         </div>
       </div>
       
@@ -56,13 +58,13 @@ export function renderPhyloTree(sequences) {
 
         <div style="width:280px;display:flex;flex-direction:column;gap:12px;">
             <div class="form-group" style="margin:0;">
-                <label class="form-label">Algorithm</label>
+                <label class="form-label"><span data-i18n="Algorithm">Algorithm</span></label>
                 <select class="form-select" id="phylo-algo">
                     <option value="nj" selected>Neighbor-Joining (NJ)</option>
                     <option value="upgma">UPGMA (Average Linkage)</option>
                 </select>
             </div>
-            <button class="btn btn-primary" id="build-tree-btn" style="margin-top:auto;width:100%;padding:8px;">▶ Build Tree</button>
+            <button class="btn btn-primary" id="build-tree-btn" style="margin-top:auto;width:100%;padding:8px;"><span data-i18n="▶ Build Tree">▶ Build Tree</span></button>
         </div>
       </div>
       
@@ -83,9 +85,11 @@ export function renderPhyloTree(sequences) {
  * @param {'nj'|'upgma'} [algo]
  * @returns {string} HTML
  */
-export function computeAndRenderTree(seqs, algo = 'nj') {
+export function computeAndRenderTree(seqs, algo = 'nj', onReport = null) {
   try {
-    const { tree, distanceMatrix: matrix, names } = buildTree(seqs, { algorithm: algo });
+    const report = buildTree(seqs, { algorithm: algo });
+    onReport?.(report);
+    const { tree, distanceMatrix: matrix, names } = report;
 
     const height = Math.max(400, seqs.length * 40);
     const svg = renderTreeSVG(tree, 800, height);
@@ -114,6 +118,7 @@ export function computeAndRenderTree(seqs, algo = 'nj') {
          ${svg}
       </div>
       ${matrixHtml}
+      ${seqs.some(s => s.sequence.length > 800) ? '<p role="status">Only the first 800 residues of each sequence are used to estimate this tree.</p>' : ''}
     `;
   } catch (e) {
     if (e instanceof BioError && e.code === 'TOO_FEW_SEQUENCES') {
@@ -121,9 +126,4 @@ export function computeAndRenderTree(seqs, algo = 'nj') {
     }
     return `<div class="empty-state"><span class="empty-state-icon">❌</span><p class="empty-state-text" style="color:#ef4444;">Error building tree: ${e.message}</p></div>`;
   }
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }

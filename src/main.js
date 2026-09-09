@@ -7,9 +7,14 @@
 
 // @ts-expect-error -- Vite resolves CSS imports; TypeScript does not.
 import './style.css';
+import { initLearning } from './app/learning.js';
+import { initLanguage } from './app/i18n.js';
 import { SAMPLE_SEQUENCES } from './data/sampleSequences.js';
-import { loadWorkspace, saveWorkspace } from './utils/storage.js';
+import { supabase } from './services/supabase.js';
+import { initAccount } from './app/account.js';
+import { loadWorkspace, saveWorkspace, setWorkspaceOwner } from './utils/storage.js';
 
+import { createAnalysisDocuments } from './app/analysisDocuments.js';
 import { createStore } from './app/store.js';
 import { createStatusBar, escapeHtml, initTheme } from './app/ui.js';
 import { createFileTree } from './app/fileTree.js';
@@ -28,6 +33,8 @@ import { createToolBindings } from './app/toolBindings.js';
 const store = createStore(
     {
         sequences: [],
+        analysisDocuments: [],
+        activeAnalysisId: null,
         activeSequenceIdx: -1,
         activeTool: 'viewer',
         tabs: [],
@@ -48,6 +55,7 @@ const app = /** @type {App} */ ({
 Object.assign(
     app,
     createStatusBar(app),
+    createAnalysisDocuments(app),
     createFileTree(app),
     createTabs(app),
     createPanel(app),
@@ -58,6 +66,22 @@ Object.assign(
 
 app.toolBindings = createToolBindings({
     state: app.state,
+    addEditedSequence: seq => {
+        app.setState({sequences:[...app.state.sequences,seq],activeTool:'viewer'});
+        app.renderFileTree(); app.openSequence(app.state.sequences.length-1);
+        app.setStatus(`Saved edited copy: ${seq.name}`);
+    },
+    setSequenceTopology: (seq,topology) => {
+        if (seq.type === 'protein') return;
+        seq.topology = topology;
+        app.setState({sequences:[...app.state.sequences]});
+        app.renderFileTree(); app.setStatus(`Topology: ${topology}`);
+    },
+    saveAnalysisDocument: doc => {
+        app.setState({analysisDocuments:[...app.state.analysisDocuments, doc]});
+        app.renderFileTree();
+        app.openAnalysisDocument(doc.id);
+    },
     setStatus: msg => app.setStatus(msg),
     showAnnotationDialog: seq => app.showAnnotationDialog(seq),
 });
@@ -68,15 +92,20 @@ app.toolBindings = createToolBindings({
  * @returns {Promise<void>}
  */
 async function init() {
+    const sessionResult = supabase ? await supabase.auth.getSession() : null;
+    const user = sessionResult?.data.session?.user || null;
+    setWorkspaceOwner(user?.id || null);
     try {
         const savedState = await loadWorkspace();
-        if (savedState && savedState.sequences && savedState.sequences.length > 0) {
+        if (savedState && Array.isArray(savedState.sequences)) {
             app.setState({
                 sequences: savedState.sequences,
+                analysisDocuments: savedState.analysisDocuments || [],
+                activeAnalysisId: savedState.activeAnalysisId || null,
                 tabs: savedState.tabs || [],
                 activeTabId: savedState.activeTabId,
                 tabCounter: savedState.tabCounter || 0,
-                activeSequenceIdx: savedState.activeSequenceIdx || -1,
+                activeSequenceIdx: savedState.activeSequenceIdx ?? -1,
             });
         } else {
             app.setState({ sequences: [...SAMPLE_SEQUENCES] });
@@ -88,11 +117,13 @@ async function init() {
     // Restoring is not a user edit; drop the save the writes above scheduled.
     store.cancelPendingSave();
 
+    initAccount(app, store, user);
     initTheme();
     app.renderFileTree();
     app.bindToolNav();
     app.bindToolbar();
     app.bindNcbiFetch();
+    initLearning(app);
 
     if (app.state.activeTabId != null) {
         app.renderTabs();
@@ -102,6 +133,7 @@ async function init() {
     }
 
     app.setStatus('Ready');
+    initLanguage();
 }
 
 init();

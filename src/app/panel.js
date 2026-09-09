@@ -8,7 +8,9 @@
 // otherwise the active tool from the registry. Also keeps the sidebar's tool
 // list in step with what the current selection can actually run.
 
+import { workspaceMarkup } from './workspace.js';
 import { TOOLS, getTool, toolUnavailableReason } from './tools.js';
+import { mountSequenceView, destroySequenceView } from './sequenceViewHost.js';
 
 /**
  * The application context, assigned by createPanel(). Collaborators are looked up
@@ -38,11 +40,12 @@ export function createPanel(context) {
 }
 
 function openSequence(idx) {
-    app.setState({ activeSequenceIdx: idx });
+    app.setState({ activeSequenceIdx: idx, activeAnalysisId: null });
     // Toggle active class without re-rendering entire file tree
     app.updateFileTreeActive(idx);
 
     const seq = app.state.sequences[idx];
+    if (toolUnavailableReason(getTool(app.state.activeTool),app.state)) app.setState({activeTool:'viewer'});
     let existingTab = app.state.tabs.find(t => t.seqIdx === idx);
     if (!existingTab) {
         const tab = { id: ++app.state.tabCounter, seqIdx: idx, name: seq.name };
@@ -60,35 +63,56 @@ function openSequence(idx) {
 function renderWelcomeScreen() {
     const panel = document.getElementById('panel-container');
     if (!panel) return;
-    panel.innerHTML = `
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:24px;padding:40px;">
-      <div style="width:64px;height:64px;border-radius:50%;border:2px solid var(--accent-cyan);display:flex;align-items:center;justify-content:center;opacity:0.6;">
-        <svg width="32" height="32" viewBox="0 0 28 28" fill="none">
-          <path d="M8 14 C8 8, 14 6, 14 14 C14 6, 20 8, 20 14 C20 20, 14 22, 14 14 C14 22, 8 20, 8 14Z" fill="url(#wg)"/>
-          <defs><linearGradient id="wg" x1="0" y1="0" x2="28" y2="28"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs>
-        </svg>
-      </div>
-      <h1 style="font-size:28px;font-weight:700;background:var(--gradient-accent);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">BioGenesis</h1>
-      <p style="color:var(--text-secondary);font-size:14px;max-width:500px;text-align:center;line-height:1.6;">Premium Bioinformatics Suite — Sequence Analysis, Alignment, Phylogenetics, Cloning, and More</p>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:8px;">
-        ${makeWelcomeCard('Import File', 'import', '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>')}
-        ${makeWelcomeCard('New Sequence', 'new', '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>')}
-        ${makeWelcomeCard('Sample: pUC19', 'sample-0', '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 3a3 3 0 013 3" stroke-width="2.5" opacity="0.5"/></svg>')}
-        ${makeWelcomeCard('Sample: GFP', 'sample-1', '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>')}
-        ${makeWelcomeCard('BLAST Search', 'blast', '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>')}
-      </div>
-    </div>
-  `;
-
-    panel.querySelectorAll('.welcome-card').forEach(card => {
-        card.addEventListener('click', () => {
-            const action = card.dataset.action;
-            if (action === 'import') document.getElementById('file-input')?.click();
-            else if (action === 'new') app.showNewSequenceDialog();
-            else if (action === 'blast') app.switchTool('blast');
-            else if (action.startsWith('sample-')) openSequence(parseInt(action.split('-')[1]));
+    destroySequenceView();
+    document.getElementById('workspace-context')?.remove();
+    panel.innerHTML = workspaceMarkup(app.state.sequences);
+    if (app.state.analysisDocuments?.length) {
+        const section = document.createElement('section');
+        section.className = 'analysis-document panel-body';
+        section.innerHTML = `<h2 data-vi="Tài liệu phân tích đã lưu" data-en="Saved analysis documents">Tài liệu phân tích đã lưu</h2><div class="analysis-actions">${app.state.analysisDocuments.map(doc => `<button class="btn btn-secondary" data-analysis-id="${app.escapeHtml(doc.id)}">${doc.kind === 'alignment' ? 'ALN' : 'TREE'} · ${app.escapeHtml(doc.name)}</button>`).join('')}</div>`;
+        panel.append(section);
+        section.querySelectorAll('[data-analysis-id]').forEach(button => button.addEventListener('click', () => app.openAnalysisDocument(button.dataset.analysisId)));
+    }
+    updateToolAvailability();
+    panel.querySelectorAll('[data-open-document]').forEach(button => {
+        button.addEventListener('click', () => {
+            app.setState({ activeTool: button.dataset.documentTool || 'viewer' });
+            openSequence(Number(button.dataset.openDocument));
         });
     });
+    panel.querySelectorAll('[data-workspace-action]').forEach(button => {
+        button.addEventListener('click', () => {
+            const action = button.dataset.workspaceAction;
+            if (action === 'library') document.getElementById('learning-hub-btn')?.click();
+            if (action === 'database') document.getElementById('database-search-btn')?.click();
+            if (action === 'import') document.getElementById('btn-import')?.click();
+            if (action === 'new') app.showNewSequenceDialog();
+            if (action === 'learn') {
+                document.dispatchEvent(new Event('biogenesis:start-first-lesson'));
+            }
+        });
+    });
+    let selectedType = 'all';
+    const filter = () => {
+        const query = panel.querySelector('#workspace-search').value.trim().toLowerCase();
+        const type = selectedType;
+        let count = 0;
+        panel.querySelectorAll('[data-document-row]').forEach(row => {
+            row.hidden = !row.dataset.name.includes(query) || (type !== 'all' && row.dataset.type !== type);
+            if (!row.hidden) count++;
+        });
+        panel.querySelector('#workspace-no-results').hidden = count > 0;
+        panel.querySelector('#workspace-result-count').innerHTML = `<span data-vi="Hiển thị ${count} / ${app.state.sequences.length} trình tự" data-en="Showing ${count} of ${app.state.sequences.length} sequences">Hiển thị ${count} / ${app.state.sequences.length} trình tự</span>`;
+    };
+    panel.querySelector('#workspace-search').addEventListener('input', filter);
+    panel.querySelectorAll('[data-workspace-type]').forEach(button => {
+        button.addEventListener('click', () => {
+            selectedType = button.dataset.workspaceType;
+            panel.querySelectorAll('[data-workspace-type]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+            filter();
+        });
+    });
+    filter();
 }
 
 function makeWelcomeCard(label, action, iconSvg) {
@@ -103,6 +127,16 @@ function renderToolPanel() {
     const panel = document.getElementById('panel-container');
     if (!panel) return;
 
+    // The sequence view holds canvas and window listeners that outlive an
+    // `innerHTML` swap, so it has to be torn down before anything is written.
+    destroySequenceView();
+
+    if (app.state.activeAnalysisId) {
+        app.renderAnalysisDocument();
+        updateToolAvailability();
+        return;
+    }
+
     const tool = getTool(app.state.activeTool);
     const context = {
         sequences: app.state.sequences,
@@ -116,18 +150,48 @@ function renderToolPanel() {
         return;
     }
 
+    renderContext(seq, tool);
     panel.innerHTML =
         tool.render(seq, context) + (tool.appendQuickActions ? renderQuickActions(seq) : '');
     tool.bind?.(seq, context);
     app.toolBindings[tool.id]?.(seq);
 
+    if (tool.id === 'viewer' && seq) {
+        mountSequenceView(seq, {
+            setStatus: msg => app.setStatus(msg),
+            onExtract: range => extractToDocument(seq, range),
+            onAnnotate: range => app.showAnnotationDialog(seq, range),
+        });
+    }
+
     bindCrossToolActions();
     updateToolAvailability();
+}
+
+function renderContext(seq, tool) {
+    document.getElementById('workspace-context')?.remove();
+    const bar = document.createElement('div');
+    bar.id = 'workspace-context';
+    bar.innerHTML = `<div class="context-heading"><span>${seq ? app.escapeHtml(seq.name) : 'Workspace analysis'}</span><small>${seq ? `${seq.type.toUpperCase()} · ${seq.sequence.length.toLocaleString()} ${seq.type === 'protein' ? 'aa' : 'bp'}` : tool.label}</small></div>
+      <nav aria-label="Document views">${(seq?.type === 'protein' ? ['viewer', 'protein3d', 'stats', 'editor'] : ['viewer', 'editor', 'linearmap', 'plasmid', 'stats', 'translation']).map(id => {
+          const item = TOOLS[id];
+          if (!item || toolUnavailableReason(item, app.state)) return '';
+          return `<button data-view="${id}" aria-pressed="${tool.id === id}" class="${tool.id === id ? 'active' : ''}">${id === 'protein3d' ? '<span data-vi="Xem 3D / Dự đoán" data-en="3D / Predict">Xem 3D / Dự đoán</span>' : `<span data-i18n="${item.label}">${item.label}</span>`}</button>`;
+      }).join('')}</nav>`;
+    document.getElementById('panel-container').before(bar);
+    bar.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => app.switchTool(button.dataset.view)));
 }
 
 // Disable tools that cannot run on the current selection, rather than letting
 // them render an error after the fact.
 function updateToolAvailability() {
+    const selected = app.state.sequences[app.state.activeSequenceIdx];
+    for (const id of ['btn-export', 'btn-rc', 'btn-translate']) {
+        const button = document.getElementById(id);
+        if (button) button.disabled = id === 'btn-export' && app.state.activeAnalysisId ? false : !selected || (id !== 'btn-export' && selected.type === 'protein');
+    }
+    const alignButton = document.getElementById('btn-align');
+    if (alignButton) { alignButton.disabled = app.state.sequences.length < 2; alignButton.title = alignButton.disabled ? 'Import at least 2 sequences' : 'Align sequences'; }
     const context = {
         sequences: app.state.sequences,
         activeSequenceIdx: app.state.activeSequenceIdx,
@@ -136,6 +200,7 @@ function updateToolAvailability() {
         const tool = TOOLS[btn.dataset.tool];
         if (!tool) return;
         const reason = toolUnavailableReason(tool, context);
+        btn.classList.toggle('active', !app.state.activeAnalysisId && btn.dataset.tool === app.state.activeTool && (app.state.activeSequenceIdx >= 0 || tool.usesActiveSequence === false));
         btn.disabled = reason !== null;
         btn.classList.toggle('tool-btn-disabled', reason !== null);
         if (reason) btn.title = reason;
@@ -237,6 +302,30 @@ function renderQuickActions(seq) {
       </div>
     </div>
   `;
+}
+
+// Extracting a region produces a new document rather than mutating the source,
+// which is what makes a selection safe to experiment with.
+function extractToDocument(source, { start, end, sequence }) {
+    const extracted = {
+        name: `${source.name} ${start + 1}..${end}`,
+        description: `Extracted from ${source.name} (${(end - start).toLocaleString()} ${source.type === 'protein' ? 'aa' : 'bp'})`,
+        type: source.type,
+        topology: 'linear',
+        organism: source.organism,
+        sequence,
+        // Features that fall entirely inside the extracted span come with it,
+        // rebased onto the new coordinates; partial overlaps are dropped rather
+        // than silently truncated into something biologically wrong.
+        features: (source.features || [])
+            .filter(f => f.start >= start && f.end <= end)
+            .map(f => ({ ...f, start: f.start - start, end: f.end - start })),
+    };
+
+    app.setState({ sequences: [...app.state.sequences, extracted] });
+    app.renderFileTree();
+    openSequence(app.state.sequences.length - 1);
+    app.setStatus(`Extracted ${extracted.name}`);
 }
 
 function bindCrossToolActions() {

@@ -20,7 +20,7 @@ export function renderSequenceProperties(seq) {
     <div class="panel-section">
       <div class="panel-header" style="display:flex;justify-content:space-between;align-items:flex-end;">
         <div>
-          <h2>Sequence Properties</h2>
+          <h2><span data-i18n="Sequence Properties">Sequence Properties</span></h2>
           <p>${seq.name} — Sliding window analysis (${len.toLocaleString()} ${isProtein ? 'aa' : 'bp'})</p>
         </div>
       </div>
@@ -38,7 +38,7 @@ export function renderSequenceProperties(seq) {
                 <option value="molecular_weight">Molecular Weight</option>
                 <option value="flexibility">Flexibility (B-factor)</option>
               ` : `
-                <option value="gc_content">GC Content</option>
+                <option value="gc_content" data-i18n="GC Content">GC Content</option>
                 <option value="at_skew">AT Skew</option>
                 <option value="gc_skew">GC Skew</option>
                 <option value="complexity">Sequence Complexity</option>

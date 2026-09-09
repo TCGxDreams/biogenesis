@@ -9,6 +9,8 @@
 // than importing the store directly — that keeps the registry in tools.js free
 // of controller wiring and makes these testable in isolation.
 
+import { editedSequenceCopy } from './editorActions.js';
+import { documentFromReport, writeTree } from './documentImport.js';
 import { computeAndRenderAlignment } from '../components/SequenceAlignment.js';
 import { computeAndRenderTree } from '../components/PhyloTree.js';
 import { computeDotPlot } from '../components/DotPlot.js';
@@ -21,6 +23,9 @@ import { runBlast } from '../components/BlastSearch.js';
 /**
  * @typedef {Object} BindingContext
  * @property {Object} state The live application state, for reads.
+ * @property {(seq: import('../core/types.js').Sequence) => void} [addEditedSequence]
+ * @property {(seq: import('../core/types.js').Sequence, topology: 'linear'|'circular') => void} [setSequenceTopology]
+ * @property {(doc: import('./documentImport.js').AnalysisDocument) => void} [saveAnalysisDocument]
  * @property {(message: string) => void} setStatus
  * @property {(seq: Object) => void} showAnnotationDialog Opens the annotation
  *   editor; owned by the controller because it drives the shared modal.
@@ -35,6 +40,8 @@ import { runBlast } from '../components/BlastSearch.js';
  */
 /** @type {Object} Live application state, assigned by createToolBindings(). */
 let state;
+let saveAnalysisDocument;
+let editContext;
 
 /** @type {(message: string) => void} */
 let setStatus;
@@ -50,7 +57,8 @@ let showAnnotationDialog;
  *   tool id, ready to be merged into the tool registry.
  */
 export function createToolBindings(context) {
-    ({ state, setStatus, showAnnotationDialog } = context);
+    editContext = context;
+    ({ state, setStatus, showAnnotationDialog, saveAnalysisDocument } = context);
     return {
         alignment: bindAlignmentEvents,
         dotplot: bindDotPlotEvents,
@@ -78,40 +86,18 @@ function bindAlignmentEvents() {
             resultDiv.innerHTML =
                 '<p style="color:var(--text-muted);padding:20px;">Computing Alignment...</p>';
             setTimeout(() => {
-                resultDiv.innerHTML = computeAndRenderAlignment(selectedSeqs, algo);
+                let report;
+                resultDiv.innerHTML = computeAndRenderAlignment(selectedSeqs, algo, value => { report = value; });
+                if (report) bindSaveReport(resultDiv, report, selectedSeqs);
 
                 // Setup export button
                 const exportBtn = document.getElementById('align-export-btn');
                 if (exportBtn && resultDiv.querySelector('.alignment-container')) {
                     exportBtn.style.display = 'inline-block';
                     exportBtn.onclick = async () => {
-                        const { multipleAlignment, needlemanWunsch, smithWaterman } =
-                            await import('../utils/alignment.js');
-                        const isProtein = selectedSeqs.some(s => s.type === 'protein');
-                        let fas = '';
-                        if (algo === 'msa') {
-                            const aln = multipleAlignment(
-                                selectedSeqs.map(s => s.sequence),
-                                isProtein
-                            );
-                            selectedSeqs.forEach((s, i) => {
-                                fas += `>${s.name}\\n${aln[i]}\\n`;
-                            });
-                        } else {
-                            const res =
-                                algo === 'nw'
-                                    ? needlemanWunsch(
-                                          selectedSeqs[0].sequence,
-                                          selectedSeqs[1].sequence,
-                                          isProtein
-                                      )
-                                    : smithWaterman(
-                                          selectedSeqs[0].sequence,
-                                          selectedSeqs[1].sequence,
-                                          isProtein
-                                      );
-                            fas = `>${selectedSeqs[0].name}\\n${res.aligned1}\\n>${selectedSeqs[1].name}\\n${res.aligned2}\\n`;
-                        }
+                        const { alignmentToFasta } =
+                            await import('../core/alignment-report.js');
+                        const fas = alignmentToFasta(report);
                         const blob = new Blob([fas], { type: 'text/plain' });
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
@@ -173,7 +159,9 @@ function bindPhyloEvents() {
             resultDiv.innerHTML =
                 '<p style="color:var(--text-muted);padding:20px;">Building tree...</p>';
             setTimeout(async () => {
-                resultDiv.innerHTML = computeAndRenderTree(seqs, algo);
+                let report;
+                resultDiv.innerHTML = computeAndRenderTree(seqs, algo, value => { report = value; });
+                if (report) bindSaveReport(resultDiv, report, seqs);
 
                 // Setup exporters
                 const svgBtn = document.getElementById('phylo-export-svg-btn');
@@ -184,15 +172,7 @@ function bindPhyloEvents() {
                     svgBtn.style.display = 'inline-block';
                     newickBtn.style.display = 'inline-block';
 
-                    // We need to re-compute tree for newick because computeAndRenderTree just returns HTML
-                    const { calculateDistanceMatrix, neighborJoining, upgma, toNewick } =
-                        await import('../utils/phylo.js');
-                    const trimmed = seqs.map(s => s.sequence.substring(0, 800));
-                    const names = seqs.map(s => s.name);
-                    const { matrix } = calculateDistanceMatrix(trimmed, names);
-                    const tree =
-                        algo === 'upgma' ? upgma(matrix, names) : neighborJoining(matrix, names);
-                    const newickStr = toNewick(tree) + ';';
+                    const newickStr = writeTree(report.tree) + ';';
 
                     svgBtn.onclick = () => {
                         const blob = new Blob([svgEl.outerHTML], { type: 'image/svg+xml' });
@@ -450,7 +430,39 @@ function bindBlastEvents() {
 }
 
 function bindEditorEvents(seq) {
+    const input = document.getElementById('editor-sequence-text');
+    const save = document.getElementById('editor-save-copy');
+    const reset = document.getElementById('editor-reset');
+    const feedback = document.getElementById('editor-feedback');
+    const refresh = () => {
+        const changed = input.value.replace(/\s/g,'').toUpperCase() !== seq.sequence.toUpperCase();
+        save.disabled = !changed; reset.disabled = input.value !== seq.sequence;
+    };
+    input?.addEventListener('input', refresh);
+    reset?.addEventListener('click', () => { input.value = seq.sequence; refresh(); feedback.textContent = ''; });
+    save?.addEventListener('click', () => {
+        try { editContext.addEditedSequence(editedSequenceCopy(seq,input.value)); }
+        catch (error) { feedback.textContent = error.message; }
+    });
+    document.querySelectorAll('[data-editor-topology]').forEach(button => button.addEventListener('click', () => {
+        editContext.setSequenceTopology(seq,button.dataset.editorTopology);
+        document.querySelectorAll('[data-editor-topology]').forEach(item => { const active = item.dataset.editorTopology === seq.topology; item.classList.toggle('active',active); item.setAttribute('aria-pressed',String(active)); });
+    }));
     document.getElementById('add-annotation-btn')?.addEventListener('click', () => {
         showAnnotationDialog(seq);
     });
+}
+
+function bindSaveReport(container, report, inputs) {
+    const saved = documentFromReport(report, inputs);
+    const button = document.createElement('button');
+    button.className = 'btn btn-primary';
+    button.dataset.vi = 'Lưu kết quả vào tài liệu';
+    button.dataset.en = 'Save result to documents';
+    button.textContent = button.dataset.vi;
+    button.addEventListener('click', () => {
+        saveAnalysisDocument?.(saved);
+        button.disabled = true;
+    });
+    container.prepend(button);
 }

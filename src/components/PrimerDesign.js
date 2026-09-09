@@ -12,7 +12,7 @@ export function renderPrimerDesign(seq) {
   if (seq.type === 'protein') {
     return `
       <div class="panel active">
-        <div class="panel-header"><h2>Primer Design</h2><p>Requires a DNA/RNA sequence</p></div>
+        <div class="panel-header"><h2><span data-i18n="Primer Design">Primer Design</span></h2><p>Requires a DNA/RNA sequence</p></div>
         <div class="panel-body"><div class="empty-state"><span class="empty-state-icon">🧬</span><p class="empty-state-text">Select a DNA sequence</p></div></div>
       </div>`;
   }
@@ -137,7 +137,7 @@ export function renderPrimerResults(seqStr, settings) {
               5' - ${colorCodeDNA(fwd.sequence)} - 3'
             </div>
             <div style="display:flex;gap:12px;font-size:10px;">
-              <div class="primer-stat"><span class="stat-label">Length</span><span class="stat-value">${fwd.sequence.length}</span></div>
+              <div class="primer-stat"><span class="stat-label"><span data-i18n="Length">Length</span></span><span class="stat-value">${fwd.sequence.length}</span></div>
               <div class="primer-stat"><span class="stat-label">Tm (NN)</span><span class="stat-value" style="color:var(--accent-cyan);">${fwd.tm.toFixed(1)}°C</span></div>
               <div class="primer-stat"><span class="stat-label">GC%</span><span class="stat-value">${fwd.gc.toFixed(1)}%</span></div>
               <div class="primer-stat"><span class="stat-label">Hairpin</span>${fwd.hairpin ? '<span style="color:var(--accent-red);font-weight:600;">Yes</span>' : '<span style="color:var(--text-muted);">No</span>'}</div>
@@ -154,7 +154,7 @@ export function renderPrimerResults(seqStr, settings) {
               5' - ${colorCodeDNA(rev.sequence)} - 3'
             </div>
             <div style="display:flex;gap:12px;font-size:10px;">
-              <div class="primer-stat"><span class="stat-label">Length</span><span class="stat-value">${rev.sequence.length}</span></div>
+              <div class="primer-stat"><span class="stat-label"><span data-i18n="Length">Length</span></span><span class="stat-value">${rev.sequence.length}</span></div>
               <div class="primer-stat"><span class="stat-label">Tm (NN)</span><span class="stat-value" style="color:var(--accent-cyan);">${rev.tm.toFixed(1)}°C</span></div>
               <div class="primer-stat"><span class="stat-label">GC%</span><span class="stat-value">${rev.gc.toFixed(1)}%</span></div>
               <div class="primer-stat"><span class="stat-label">Hairpin</span>${rev.hairpin ? '<span style="color:var(--accent-red);font-weight:600;">Yes</span>' : '<span style="color:var(--text-muted);">No</span>'}</div>

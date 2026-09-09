@@ -197,3 +197,14 @@ export function buildAlignmentReport(entries, options = {}) {
         pairwise,
     };
 }
+
+/**
+ * Serialize the same bounded report that the alignment panel displays.
+ * @param {AlignmentReport} report
+ * @returns {string}
+ */
+export function alignmentToFasta(report) {
+    return report.rows.map(row =>
+        `>${row.name.replace(/[\r\n]+/g, ' ')}\n${row.aligned}\n`
+    ).join('');
+}

@@ -13,9 +13,11 @@
  *
  * @typedef {Object} WorkspaceState
  * @property {import('../core/types.js').Sequence[]} sequences
+ * @property {import('./documentImport.js').AnalysisDocument[]} analysisDocuments
+ * @property {string|null} activeAnalysisId
  * @property {number} activeSequenceIdx -1 when nothing is open.
  * @property {string} activeTool Id into the tool registry.
- * @property {Array<{id: number, seqIdx: number, name: string}>} tabs
+ * @property {Array<{id: number, seqIdx: number, name: string, documentId?: string}>} tabs
  * @property {number|null} activeTabId
  * @property {number} tabCounter Monotonic, so tab ids stay unique.
  */
@@ -30,6 +32,8 @@
  * @property {(patch: Object) => Object} setState
  * @property {(str: string) => string} escapeHtml
  * @property {(msg: string) => void} setStatus
+ * @property {(id: string) => void} openAnalysisDocument
+ * @property {() => void} renderAnalysisDocument
  * @property {() => void} renderFileTree
  * @property {(newIdx: number) => void} updateFileTreeActive
  * @property {() => void} updateDocsCount

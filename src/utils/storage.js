@@ -5,6 +5,10 @@
 const DB_NAME = 'BioGenesisDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'workspace';
+let workspaceKey = 'currentState';
+/** Select an account namespace before reading/writing. Guest data stays separate.
+ * @param {string|null} userId */
+export function setWorkspaceOwner(userId) { workspaceKey = userId ? `user:${userId}` : 'currentState'; }
 
 /** @type {IDBDatabase|null} */
 let db = null;
@@ -16,6 +20,8 @@ let db = null;
  *
  * @typedef {Object} PersistedWorkspace
  * @property {import('../core/types.js').Sequence[]} sequences
+ * @property {import('../app/documentImport.js').AnalysisDocument[]} [analysisDocuments]
+ * @property {string|null} [activeAnalysisId]
  * @property {Object[]} tabs
  * @property {string|number|null} activeTabId
  * @property {number} activeSequenceIdx
@@ -67,9 +73,11 @@ async function connection() {
  * Persist the workspace. Debouncing is the caller's job, not this function's.
  *
  * @param {PersistedWorkspace} state Serialisable workspace state.
+ * @param {boolean} [backup]
  * @returns {Promise<void>}
  */
-export async function saveWorkspace(state) {
+export async function saveWorkspace(state, backup = false) {
+    const key = backup ? `${workspaceKey}:backup` : workspaceKey;
     const database = await connection();
     return new Promise((resolve, reject) => {
         try {
@@ -79,6 +87,8 @@ export async function saveWorkspace(state) {
             // We don't save the active tool to avoid confusing state on reload
             const dataToSave = {
                 sequences: state.sequences,
+                analysisDocuments: state.analysisDocuments || [],
+                activeAnalysisId: state.activeAnalysisId || null,
                 tabs: state.tabs,
                 activeTabId: state.activeTabId,
                 activeSequenceIdx: state.activeSequenceIdx,
@@ -86,10 +96,10 @@ export async function saveWorkspace(state) {
                 lastSaved: Date.now(),
             };
 
-            const request = store.put(dataToSave, 'currentState');
-
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
+            store.put(dataToSave, key);
+            transaction.oncomplete = () => resolve();
+            transaction.onerror = () => reject(transaction.error);
+            transaction.onabort = () => reject(transaction.error || new Error('Workspace save aborted.'));
         } catch (err) {
             reject(err);
         }
@@ -99,15 +109,17 @@ export async function saveWorkspace(state) {
 /**
  * Read the persisted workspace.
  *
+ * @param {boolean} [backup]
  * @returns {Promise<PersistedWorkspace|null>} Null when nothing has been saved.
  */
-export async function loadWorkspace() {
+export async function loadWorkspace(backup = false) {
+    const key = backup ? `${workspaceKey}:backup` : workspaceKey;
     const database = await connection();
     return new Promise((resolve, reject) => {
         try {
             const transaction = database.transaction([STORE_NAME], 'readonly');
             const store = transaction.objectStore(STORE_NAME);
-            const request = store.get('currentState');
+            const request = store.get(key);
 
             request.onsuccess = () => {
                 resolve(request.result || null);
@@ -125,11 +137,12 @@ export async function loadWorkspace() {
  * @returns {Promise<void>}
  */
 export async function clearWorkspace() {
+    const key = workspaceKey;
     const database = await connection();
     return new Promise((resolve, reject) => {
         const transaction = database.transaction([STORE_NAME], 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
-        const request = store.delete('currentState');
+        const request = store.delete(key);
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
     });

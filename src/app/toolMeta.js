@@ -33,10 +33,9 @@ export const ALL_TYPES = ['dna', 'rna', 'protein'];
 export const TOOL_META = {
     viewer: {
         id: 'viewer',
-        label: 'Sequence Viewer',
+        label: 'Sequence View',
         accepts: ALL_TYPES,
         needsSequences: 1,
-        appendQuickActions: true,
     },
     editor: {
         id: 'editor',

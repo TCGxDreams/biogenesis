@@ -7,14 +7,15 @@
 // The top toolbar, the sidebar tool list, and the file import/export actions.
 
 import {
-    parseFasta,
-    parseGenBank,
-    detectSequenceType,
     toFasta,
     downloadFile,
     reverseComplement,
     fetchUniProtId,
 } from '../utils/bioUtils.js';
+import { initResponsiveLayout, openResponsiveSidebar } from './responsive.js';
+import { initSidebar, showSidebarTab } from './sidebar.js';
+import { exportAnalysisDocument, importDocuments } from './documentImport.js';
+import { TOOLS, toolUnavailableReason } from './tools.js';
 import { autoAnnotate } from '../utils/autoAnnotate.js';
 
 /**
@@ -46,18 +47,34 @@ export function createToolbar(context) {
 function bindToolNav() {
     document.querySelectorAll('.tool-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            app.setState({ activeTool: btn.dataset.tool });
-            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            app.renderToolPanel();
+            switchTool(btn.dataset.tool);
         });
     });
 }
 
 function bindToolbar() {
+    initSidebar();
+    initResponsiveLayout();
+    document.getElementById('workspace-home-btn')?.addEventListener('click', () => {
+        app.setState({ activeSequenceIdx: -1, activeTabId: null, activeAnalysisId: null });
+        app.updateFileTreeActive(-1);
+        app.renderTabs();
+        app.renderWelcomeScreen();
+        showSidebarTab('documents');
+    });
     document
         .getElementById('btn-import')
-        ?.addEventListener('click', () => document.getElementById('file-input')?.click());
+        ?.addEventListener('click', () => {
+            app.showModal(`<h2 data-vi="Nhập dữ liệu" data-en="Import data">Nhập dữ liệu</h2><p data-vi="Chọn cách sử dụng dữ liệu FASTA. Cây Newick được nhận theo định dạng tệp." data-en="Choose how to use FASTA data. Newick trees are detected by file format.">Chọn cách sử dụng dữ liệu FASTA. Cây Newick được nhận theo định dạng tệp.</p><label for="import-kind" data-vi="Loại dữ liệu FASTA" data-en="FASTA document type">Loại dữ liệu FASTA</label><select class="form-select" id="import-kind"><option value="auto" data-vi="Tự nhận alignment khi có gap" data-en="Detect alignment when gaps are present">Tự nhận alignment khi có gap</option><option value="sequences" data-vi="Các trình tự riêng" data-en="Separate sequences">Các trình tự riêng</option><option value="alignment" data-vi="Alignment (kể cả không có gap)" data-en="Alignment (including gapless)">Alignment (kể cả không có gap)</option></select><label for="import-molecule" data-vi="Loại phân tử (alignment FASTA)" data-en="Molecule type (FASTA alignment)">Loại phân tử (alignment FASTA)</label><select class="form-select" id="import-molecule"><option value="auto" data-vi="Tự nhận (có thể cần chỉnh với protein ngắn)" data-en="Detect (short proteins may need an override)">Tự nhận (có thể cần chỉnh với protein ngắn)</option><option value="dna">DNA</option><option value="rna">RNA</option><option value="protein">Protein</option></select><p>FASTA · GenBank · Newick (.tree / .nwk / .newick) · NEXUS (.nex)</p><button class="btn btn-secondary" id="cancel-import" data-vi="Hủy" data-en="Cancel">Hủy</button><button class="btn btn-primary" id="choose-import-file" data-vi="Chọn tệp" data-en="Choose files">Chọn tệp</button>`);
+            document.getElementById('cancel-import').onclick = app.hideModal;
+            document.getElementById('choose-import-file').onclick = () => {
+                const input = document.getElementById('file-input');
+                input.dataset.importMode = document.getElementById('import-kind').value;
+                input.dataset.molecule = document.getElementById('import-molecule').value;
+                app.hideModal();
+                input.click();
+            };
+        });
     document.getElementById('btn-export')?.addEventListener('click', handleExport);
     document.getElementById('btn-new-seq')?.addEventListener('click', app.showNewSequenceDialog);
     document.getElementById('btn-align')?.addEventListener('click', () => switchTool('alignment'));
@@ -73,18 +90,23 @@ function bindToolbar() {
     document.getElementById('global-search')?.addEventListener('input', e => {
         clearTimeout(searchTimer);
         searchTimer = setTimeout(() => {
-            const q = e.target.value.toLowerCase();
-            const items = document.querySelectorAll('.file-item');
-            items.forEach(item => {
-                const name = item.querySelector('.file-name')?.textContent.toLowerCase() || '';
-                item.style.display = name.includes(q) ? '' : 'none';
-            });
+            const input = document.getElementById('document-search');
+            if (input) {
+                input.value = e.target.value;
+                input.dispatchEvent(new Event('input'));
+                showSidebarTab('documents');
+                openResponsiveSidebar();
+            }
         }, 150); // 150ms debounce
     });
 }
 
 function switchTool(toolName) {
-    app.setState({ activeTool: toolName });
+    const tool = TOOLS[toolName];
+    if (!tool) { app.setStatus('Unknown tool'); return; }
+    const reason = toolUnavailableReason(tool,app.state);
+    if (reason) { app.setStatus(reason); return; }
+    app.setState({ activeTool: toolName, activeAnalysisId: null });
     document.querySelectorAll('.tool-btn').forEach(b => {
         b.classList.toggle('active', b.dataset.tool === toolName);
     });
@@ -115,27 +137,26 @@ function handleReverseComplement() {
 function handleFileImport(e) {
     const files = e.target.files;
     if (!files.length) return;
+    const mode = e.target.dataset.importMode || 'auto';
+    const molecule = e.target.dataset.molecule || 'auto';
     for (const file of files) {
+        if (file.size > 10_000_000) { app.setStatus(`Import failed (${file.name}): maximum 10 MB.`); continue; }
         const reader = new FileReader();
         reader.onload = evt => {
             const text = evt.target.result;
-            let parsed = [];
-            if (file.name.match(/\.(gb|gbk|genbank)$/i)) {
-                const gbSeq = parseGenBank(text);
-                if (gbSeq) parsed = [gbSeq];
-            } else if (file.name.match(/\.(fasta|fa|fna|faa|seq)$/i)) {
-                parsed = parseFasta(text);
-            } else {
-                const clean = text.replace(/\s/g, '');
-                parsed = [
-                    {
-                        name: file.name,
-                        sequence: clean,
-                        type: detectSequenceType(clean),
-                        annotations: [],
-                        description: '',
-                    },
-                ];
+            let parsed;
+            try {
+                const imported = importDocuments(file.name, text, mode, molecule);
+                if (imported.documents.length) {
+                    app.setState({analysisDocuments:[...app.state.analysisDocuments, ...imported.documents]});
+                    app.openAnalysisDocument(imported.documents[0].id);
+                    app.setStatus(`Imported ${imported.documents.length} analysis document(s) from ${file.name}`);
+                    return;
+                }
+                parsed = imported.sequences;
+            } catch (error) {
+                app.setStatus(`Import failed (${file.name}): ${error.message}`);
+                return;
             }
             if (parsed.length) {
                 parsed.forEach(seq => {
@@ -166,15 +187,20 @@ function handleFileImport(e) {
                 app.setState({ sequences: [...app.state.sequences, ...parsed] });
                 app.renderFileTree();
                 app.openSequence(app.state.sequences.length - parsed.length);
-                app.setStatus(`Imported ${parsed.length} sequence(s) from ${file.name}`);
+                const aligned = parsed.some(seq => /[-.]/.test(seq.sequence));
+                app.setStatus(`Imported ${parsed.length} sequence(s) from ${file.name}${aligned ? ' — gaps preserved; imported as separate sequences, not an alignment document.' : ''}`);
             }
         };
+        reader.onerror = () => app.setStatus(`Could not read ${file.name}`);
         reader.readAsText(file);
     }
     e.target.value = '';
 }
 
 function handleExport() {
+    const doc = app.state.analysisDocuments.find(d => d.id === app.state.activeAnalysisId);
+    if (doc) { const output = exportAnalysisDocument(doc); downloadFile(output.text, output.filename); return; }
+
     if (app.state.activeSequenceIdx < 0) {
         app.setStatus('No sequence selected');
         return;

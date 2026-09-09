@@ -44,7 +44,8 @@ function renderTabs() {
             const tab = app.state.tabs.find(t => t.id === tabId);
             if (tab) {
                 app.setState({ activeTabId: tabId });
-                app.openSequence(tab.seqIdx);
+                if (tab.documentId) app.openAnalysisDocument(tab.documentId);
+                else app.openSequence(tab.seqIdx);
             }
         });
     });
@@ -57,9 +58,11 @@ function renderTabs() {
             if (app.state.activeTabId === tabId) {
                 if (app.state.tabs.length > 0) {
                     app.setState({ activeTabId: app.state.tabs[app.state.tabs.length - 1].id });
-                    app.openSequence(app.state.tabs[app.state.tabs.length - 1].seqIdx);
+                    const next = app.state.tabs[app.state.tabs.length - 1];
+                    if (next.documentId) app.openAnalysisDocument(next.documentId);
+                    else app.openSequence(next.seqIdx);
                 } else {
-                    app.setState({ activeTabId: null, activeSequenceIdx: -1 });
+                    app.setState({ activeTabId: null, activeSequenceIdx: -1, activeAnalysisId: null });
                     app.renderWelcomeScreen();
                 }
             }

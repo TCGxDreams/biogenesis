@@ -12,7 +12,7 @@ export function renderSixFrameTranslation(seq) {
   if (seq.type === 'protein') {
     return `
       <div class="panel active">
-        <div class="panel-header"><h2>6-Frame Translation</h2><p>Requires a DNA or RNA sequence</p></div>
+        <div class="panel-header"><h2><span data-i18n="6-Frame Translation">6-Frame Translation</span></h2><p>Requires a DNA or RNA sequence</p></div>
         <div class="panel-body"><div class="empty-state"><p class="empty-state-text">Please select a DNA/RNA sequence</p></div></div>
       </div>`;
   }
@@ -72,7 +72,7 @@ export function renderSixFrameTranslation(seq) {
     <div class="panel active">
       <div class="panel-header" style="display:flex;justify-content:space-between;align-items:flex-end;">
         <div>
-          <h2>6-Frame Translation</h2>
+          <h2><span data-i18n="6-Frame Translation">6-Frame Translation</span></h2>
           <p>${escapeHtml(seq.name)} — showing ${displayLen > seqStr.length ? '' : 'first '}${displayLen} bp</p>
         </div>
         <div>

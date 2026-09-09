@@ -14,7 +14,7 @@ export function renderBlastSearch(seq) {
     <div class="panel active">
       <div class="panel-header" style="display:flex;justify-content:space-between;align-items:flex-end;">
         <div>
-          <h2>BLAST Search</h2>
+          <h2><span data-i18n="BLAST Search">BLAST Search</span></h2>
           <p>Search sequences against the NCBI database using Basic Local Alignment Search Tool</p>
         </div>
       </div>
@@ -229,7 +229,7 @@ function formatBlastResults(json, program) {
                         <span style="font-weight:700;color:var(--accent-green);font-family:var(--font-mono);font-size:12px;">${hsp.evalue?.toExponential(1)}</span>
                     </div>
                     <div style="display:flex;flex-direction:column;align-items:flex-end;">
-                        <span style="font-size:10px;color:var(--text-muted);text-transform:uppercase;">Identity</span>
+                        <span style="font-size:10px;color:var(--text-muted);text-transform:uppercase;"><span data-i18n="Identity">Identity</span></span>
                         <span style="font-weight:600;color:var(--text-primary);font-size:12px;">${identity}%</span>
                     </div>
                      <div style="display:flex;flex-direction:column;align-items:flex-end;">
@@ -240,7 +240,7 @@ function formatBlastResults(json, program) {
                 </div>
             </summary>
             <div style="padding:16px;border-top:1px solid var(--border-muted);background:var(--bg-tertiary);overflow-x:auto;">
-                <h4 style="font-size:11px;text-transform:uppercase;color:var(--text-secondary);margin:0 0 12px;letter-spacing:0.5px;">Sequence Alignment</h4>
+                <h4 style="font-size:11px;text-transform:uppercase;color:var(--text-secondary);margin:0 0 12px;letter-spacing:0.5px;"><span data-i18n="Sequence Alignment">Sequence Alignment</span></h4>
                 ${alignBlocks || '<div style="color:var(--text-muted);font-size:11px;">Alignment rendering not available for this hit.</div>'}
             </div>
         </details>

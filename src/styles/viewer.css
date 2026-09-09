@@ -1,0 +1,260 @@
+/* ============================================
+   BioGenesis — Interactive sequence view
+   The canvas surface, its toolbar and the shared context menu.
+   Dense, low-chrome controls: the sequence is the interface, not the widgets.
+   ============================================ */
+
+/* The panel container scrolls its string-rendered tools; the sequence view
+   scrolls itself, so it is taken out of that flow and pinned to the panel. */
+.sv-host {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.sv-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+/* ---- toolbar ---- */
+
+.sv-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 5px 10px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-default);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.sv-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sv-find {
+  margin-left: auto;
+}
+
+.sv-btn {
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.sv-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-accent);
+  color: var(--text-primary);
+}
+
+.sv-icon {
+  width: 22px;
+  padding: 0;
+  font-size: 13px;
+}
+
+.sv-chip {
+  height: 22px;
+  padding: 0 9px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sv-chip:hover {
+  color: var(--text-primary);
+  border-color: var(--border-accent);
+}
+
+.sv-chip.active {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: var(--bg-elevated);
+}
+
+.sv-slider {
+  width: 116px;
+  height: 3px;
+  accent-color: var(--accent-blue);
+  cursor: pointer;
+}
+
+.sv-zoom-label {
+  min-width: 82px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sv-input {
+  height: 22px;
+  padding: 0 7px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  width: 150px;
+}
+
+.sv-input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+.sv-goto {
+  width: 96px;
+}
+
+.sv-find-count {
+  min-width: 52px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- canvas surface ---- */
+
+.sv-scroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--bg-elevated);
+  /* The canvas is repainted per scroll frame; asking the compositor to keep a
+     layer for the scroller keeps that from thrashing the whole page. */
+  contain: strict;
+}
+
+.sv-sizer {
+  width: 1px;
+  pointer-events: none;
+}
+
+.sv-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  cursor: text;
+}
+
+.sv-canvas:focus {
+  outline: none;
+}
+
+.sv-canvas:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -2px;
+}
+
+/* ---- footer readout ---- */
+
+.sv-footer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 12px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-default);
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.sv-doc-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sv-readout {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+/* ---- context menu ---- */
+
+.sv-menu {
+  position: fixed;
+  z-index: 9999;
+  min-width: 216px;
+  padding: 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-sans);
+  font-size: 12px;
+}
+
+.sv-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  padding: 5px 9px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sv-menu-item:hover:not(:disabled) {
+  background: var(--accent-blue);
+  color: var(--bg-elevated);
+}
+
+.sv-menu-item:disabled {
+  color: var(--text-muted);
+  opacity: 0.5;
+  cursor: default;
+}
+
+.sv-menu-item kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.sv-menu-sep {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--border-muted);
+}

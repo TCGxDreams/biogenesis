@@ -12,7 +12,7 @@ export function renderMotifFinder(seq) {
     return `
     <div class="panel active">
       <div class="panel-header">
-        <h2>Motif Finder</h2>
+        <h2><span data-i18n="Motif Finder">Motif Finder</span></h2>
         <p>Search for sequence motifs, patterns, or specific subsequences in ${escapeHtml(seq.name)}</p>
       </div>
       <div class="panel-controls" style="flex-direction:column;align-items:stretch;">
@@ -30,7 +30,7 @@ export function renderMotifFinder(seq) {
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Strand</label>
+            <label class="form-label"><span data-i18n="Strand">Strand</span></label>
             <select class="form-select" id="motif-strand">
               <option value="both">Both strands</option>
               <option value="forward">Forward only</option>
@@ -93,8 +93,8 @@ export function computeMotifSearch(seq, pattern, mode = 'exact', strand = 'both'
     let html = `
     <div class="stats-grid" style="margin-bottom:16px;">
       <div class="stat-card"><div class="stat-title">Total Matches</div><div class="stat-value">${matches.length}</div></div>
-      <div class="stat-card"><div class="stat-title">Forward (+)</div><div class="stat-value">${forwardCount}</div></div>
-      <div class="stat-card"><div class="stat-title">Reverse (-)</div><div class="stat-value">${reverseCount}</div></div>
+      <div class="stat-card"><div class="stat-title"><span data-i18n="Forward (+)">Forward (+)</span></div><div class="stat-value">${forwardCount}</div></div>
+      <div class="stat-card"><div class="stat-title"><span data-i18n="Reverse (-)">Reverse (-)</span></div><div class="stat-value">${reverseCount}</div></div>
       <div class="stat-card"><div class="stat-title">Pattern</div><div class="stat-value" style="font-size:14px;font-family:var(--font-mono);">${escapeHtml(pattern)}</div></div>
     </div>
   `;
@@ -122,7 +122,7 @@ export function computeMotifSearch(seq, pattern, mode = 'exact', strand = 'both'
     <h3 style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text-secondary);">Matches (${matches.length})</h3>
     <div style="overflow-x:auto;">
       <table class="blast-results-table">
-        <thead><tr><th>#</th><th>Strand</th><th>Position</th><th>Match</th><th>Context (10bp flanking)</th></tr></thead>
+        <thead><tr><th>#</th><th><span data-i18n="Strand">Strand</span></th><th>Position</th><th>Match</th><th>Context (10bp flanking)</th></tr></thead>
         <tbody>
           ${matches.slice(0, 50).map((m, i) => `
             <tr>

@@ -44,3 +44,8 @@ __pycache__/
 venv/
 .vercel
 .env*.local
+
+# Ghi chu noi bo va cau hinh theo may
+.claude/
+REVIEW.md
+GENEIOUS_IMPORT_REVIEW.md

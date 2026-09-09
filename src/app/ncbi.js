@@ -6,6 +6,7 @@
 //
 // Fetches records from NCBI E-utilities and adds them to the workspace.
 
+import { openDatabaseSearch } from './databaseSearch.js';
 import { fetchUniProtId } from '../utils/bioUtils.js';
 import { autoAnnotate } from '../utils/autoAnnotate.js';
 
@@ -29,85 +30,13 @@ export function createNcbiFetch(context) {
 }
 
 function bindNcbiFetch() {
-    const fetchBtn = document.getElementById('ncbi-fetch-btn');
-    const input = document.getElementById('ncbi-search-input');
-    const dbSelect = document.getElementById('ncbi-db-select');
-    const statusEl = document.getElementById('ncbi-status');
-
-    const doFetch = async () => {
-        const query = input?.value?.trim();
-        if (!query) return;
-
-        let db = dbSelect?.value || 'nucleotide';
-        const qUpper = query.toUpperCase();
-
-        // Auto-detect Database based on accession prefix
-        if (
-            /^(NP_|XP_|WP_|YP_|AP_)/.test(qUpper) ||
-            /^[A-Z][0-9][A-Z0-9]{3}[0-9]/.test(qUpper) ||
-            /^[A-Z]{3}\d{5}/.test(qUpper)
-        ) {
-            db = 'protein';
-            if (dbSelect) dbSelect.value = 'protein';
-        } else if (/^(NM_|XM_|NR_|XR_|NG_|NC_)/.test(qUpper)) {
-            db = 'nucleotide';
-            if (dbSelect) dbSelect.value = 'nucleotide';
-        }
-
-        if (statusEl) {
-            statusEl.style.display = 'block';
-            statusEl.style.color = 'var(--text-muted)';
-            statusEl.textContent = `Fetching ${query} from NCBI ${db}...`;
-        }
-        fetchBtn.disabled = true;
-        fetchBtn.textContent = '...';
-
-        try {
-            // Try direct accession fetch first
-            const url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=${db}&id=${encodeURIComponent(query)}&rettype=fasta&retmode=text`;
-            const resp = await fetch(url);
-            if (!resp.ok) throw new Error(`NCBI returned ${resp.status}`);
-            const text = await resp.text();
-
-            if (!text.startsWith('>')) {
-                // Might be a search term — try esearch first
-                const searchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=${db}&term=${encodeURIComponent(query)}&retmax=1&retmode=json`;
-                const searchResp = await fetch(searchUrl);
-                const searchData = await searchResp.json();
-                const ids = searchData?.esearchresult?.idlist;
-                if (!ids || ids.length === 0) throw new Error('No results found');
-
-                const fetchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=${db}&id=${ids[0]}&rettype=fasta&retmode=text`;
-                const r2 = await fetch(fetchUrl);
-                const t2 = await r2.text();
-                if (!t2.startsWith('>')) throw new Error('Invalid FASTA response');
-                addFastaToProject(t2, db);
-            } else {
-                addFastaToProject(text, db);
-            }
-
-            if (statusEl) {
-                statusEl.style.color = 'var(--accent-cyan)';
-                statusEl.textContent = '✓ Added to project';
-                setTimeout(() => {
-                    statusEl.style.display = 'none';
-                }, 2000);
-            }
-            if (input) input.value = '';
-        } catch (err) {
-            if (statusEl) {
-                statusEl.style.color = '#ef4444';
-                statusEl.textContent = `✗ ${err.message}`;
-            }
-        } finally {
-            fetchBtn.disabled = false;
-            fetchBtn.textContent = 'Fetch';
-        }
-    };
-
-    fetchBtn?.addEventListener('click', doFetch);
-    input?.addEventListener('keydown', e => {
-        if (e.key === 'Enter') doFetch();
+    const open = () => openDatabaseSearch(app,
+        document.getElementById('ncbi-search-input')?.value.trim() || '',
+        document.getElementById('ncbi-db-select')?.value || 'nucleotide');
+    document.getElementById('ncbi-fetch-btn')?.addEventListener('click', open);
+    document.getElementById('database-search-btn')?.addEventListener('click', () => openDatabaseSearch(app));
+    document.getElementById('ncbi-search-input')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') open();
     });
 }
 
@@ -192,7 +121,7 @@ function addFastaToProject(fastaText, db) {
             fetchUniProtId(accession || name).then(resolvedUniProt => {
                 if (resolvedUniProt) {
                     newSeq.uniprotId = resolvedUniProt;
-                    console.log(`Mapped ${accession} to UniProt: ${resolvedUniProt}`);
+                    app.setState({ sequences: [...app.state.sequences] });
                     if (app.state.sequences[app.state.activeSequenceIdx] === newSeq) {
                         app.renderToolPanel(); // Refresh 3D viewer cache if open
                     }

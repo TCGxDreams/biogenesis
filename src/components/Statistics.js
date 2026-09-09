@@ -205,7 +205,7 @@ export function renderStatistics(seq) {
           </div>
           <div style="overflow-x:auto;">
             <table class="blast-results-table" style="font-size:11px;">
-              <thead><tr><th>Frame</th><th>Start</th><th>End</th><th>Length</th><th>Protein (aa)</th><th>Start Codon</th></tr></thead>
+              <thead><tr><th>Frame</th><th>Start</th><th>End</th><th><span data-i18n="Length">Length</span></th><th>Protein (aa)</th><th>Start Codon</th></tr></thead>
               <tbody>
                 ${orfs.slice(0, 12).map(orf => `
                   <tr>

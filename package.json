@@ -27,6 +27,7 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
     "3dmol": "^2.5.4"
   }
 }

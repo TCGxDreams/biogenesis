@@ -3,10 +3,10 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>BioGenesis — Bioinformatics Suite</title>
   <meta name="description"
-    content="BioGenesis: A premium web-based bioinformatics workstation for DNA, RNA, and protein sequence analysis, alignment, phylogenetics, and molecular cloning." />
+    content="BioGenesis: An educational web-based bioinformatics workspace for DNA, RNA, and protein sequence analysis, alignment, phylogenetics, and molecular cloning." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -20,37 +20,46 @@
     <!-- Top Toolbar -->
     <header id="toolbar">
       <div class="toolbar-left">
-        <div class="app-logo">
-          <img class="logo-img" src="/src/assets/logo.svg" width="30" height="30" alt="BioGenesis Logo" />
-          <span class="app-title">BioGenesis</span>
+        <button id="sidebar-toggle" class="toolbar-btn" aria-label="Toggle sidebar" data-i18n-aria-label="Toggle sidebar" aria-expanded="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg></button><div class="app-logo">
+          <img class="logo-img" src="/src/assets/logo.svg" width="34" height="34" alt="BioGenesis" />
+          <div class="brand-wordmark"><span class="app-title">Bio<span>Genesis</span></span><span class="brand-caption">SEQUENCE WORKSPACE</span></div>
         </div>
         <div class="toolbar-divider"></div>
 
+        <details id="mobile-command-menu"><summary><span data-en="Actions" data-vi="Thao tác">Thao tác</span> ▾</summary><div>
+<button type="button" data-command="btn-new-seq"><span data-en="New sequence" data-vi="Tạo trình tự">Tạo trình tự</span></button>
+<button type="button" data-command="btn-import"><span data-en="Import file" data-vi="Nhập tệp">Nhập tệp</span></button>
+<button type="button" data-command="btn-export"><span data-en="Export FASTA" data-vi="Xuất FASTA">Xuất FASTA</span></button>
+<button type="button" data-command="btn-align"><span data-en="Align sequences" data-vi="Căn chỉnh">Căn chỉnh</span></button>
+<button type="button" data-command="btn-blast"><span data-en="BLAST search" data-vi="Tra cứu BLAST">Tra cứu BLAST</span></button>
+<button type="button" data-command="btn-rc"><span data-en="Reverse complement" data-vi="Bổ sung đảo">Bổ sung đảo</span></button>
+<button type="button" data-command="btn-translate"><span data-en="Translate" data-vi="Dịch mã">Dịch mã</span></button>
+</div></details>
         <!-- Group 1: File -->
         <div class="toolbar-group">
-          <span class="toolbar-group-label">File</span>
-          <button class="toolbar-btn" id="btn-new-seq" title="New Sequence (Ctrl+N)">
+          <span class="toolbar-group-label"><span data-i18n="File">File</span></span>
+          <button class="toolbar-btn" id="btn-new-seq" title="New Sequence" data-i18n-title="New Sequence">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            <span>New</span>
+            <span><span data-i18n="New">New</span></span>
           </button>
-          <button class="toolbar-btn" id="btn-import" title="Import File (Ctrl+O)">
+          <button class="toolbar-btn" id="btn-import" title="Import File" data-i18n-title="Import File">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
               <polyline points="17 8 12 3 7 8" />
               <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
-            <span>Import</span>
+            <span><span data-i18n="Import">Import</span></span>
           </button>
-          <button class="toolbar-btn" id="btn-export" title="Export (Ctrl+S)">
+          <button class="toolbar-btn" id="btn-export" title="Export FASTA" data-i18n-title="Export FASTA">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            <span>Export</span>
+            <span><span data-i18n="Export">Export</span></span>
           </button>
         </div>
 
@@ -58,16 +67,16 @@
 
         <!-- Group 2: Analyze -->
         <div class="toolbar-group">
-          <span class="toolbar-group-label">Analyze</span>
+          <span class="toolbar-group-label"><span data-i18n="Analyze">Analyze</span></span>
           <button class="toolbar-btn" id="btn-align" title="Align Sequences">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="3" y1="6" x2="21" y2="6" />
               <line x1="3" y1="12" x2="17" y2="12" />
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
-            <span>Align</span>
+            <span><span data-i18n="Align">Align</span></span>
           </button>
-          <button class="toolbar-btn" id="btn-blast" title="BLAST Search">
+          <button class="toolbar-btn" id="btn-blast" title="BLAST Search" data-i18n-title="BLAST Search">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -80,33 +89,39 @@
 
         <!-- Group 3: Transform -->
         <div class="toolbar-group">
-          <span class="toolbar-group-label">Transform</span>
+          <span class="toolbar-group-label"><span data-i18n="Transform">Transform</span></span>
           <button class="toolbar-btn" id="btn-rc" title="Reverse Complement">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="1 4 1 10 7 10" />
               <polyline points="23 20 23 14 17 14" />
               <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15" />
             </svg>
-            <span>Rev Comp</span>
+            <span><span data-i18n="Rev Comp">Rev Comp</span></span>
           </button>
           <button class="toolbar-btn" id="btn-translate" title="Translate (DNA→Protein)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
-            <span>Translate</span>
+            <span><span data-i18n="Translate">Translate</span></span>
           </button>
         </div>
       </div>
 
       <div class="toolbar-right">
+        <span id="cloud-sync-state" role="status" aria-live="polite"></span>
+        <button id="account-button" class="toolbar-btn" data-vi="Tài khoản" data-en="Account">Tài khoản</button>
+        <div class="language-switch" role="group" aria-label="Language / Ngôn ngữ">
+          <button type="button" data-language="vi" aria-pressed="true" title="Tiếng Việt">VI</button>
+          <button type="button" data-language="en" aria-pressed="false" title="English">EN</button>
+        </div>
         <div class="search-box">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
-          <input type="text" id="global-search" placeholder="Search sequences..." />
+          <input type="text" id="global-search" placeholder="Search sequences..." data-i18n-placeholder="Search sequences..." />
         </div>
-        <button id="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle Light/Dark Theme">
+        <button id="theme-toggle" type="button" aria-label="Toggle theme" data-i18n-aria-label="Toggle theme" title="Toggle Light/Dark Theme" data-i18n-title="Toggle Light/Dark Theme">
           <svg class="moon-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
           <svg class="sun-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg>
         </button>
@@ -116,18 +131,31 @@
     <!-- Main Layout -->
     <div id="main-layout">
       <!-- Left Sidebar -->
-      <aside id="sidebar">
+      <button id="sidebar-backdrop" tabindex="-1" aria-label="Close navigation" hidden></button>
+      <aside id="sidebar" aria-label="Workspace navigation">
+        <button id="sidebar-close" type="button"><span data-en="Close menu" data-vi="Đóng menu">Đóng menu</span> ×</button>
+        <button id="workspace-home-btn" class="workspace-nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg> <span><span data-i18n="Workspace">Workspace</span></span><small><span data-i18n="All documents">All documents</span></small></button>
+        <div class="sidebar-resources"><button id="learning-hub-btn"><span data-en="Learn & sample library" data-vi="Học & thư viện mẫu">Học & thư viện mẫu</span><span>↗</span></button><button id="database-search-btn"><span data-en="Database search" data-vi="Tìm cơ sở dữ liệu">Tìm cơ sở dữ liệu</span><span>⌕</span></button></div>
+        <div class="sidebar-switch" role="tablist" aria-label="Sidebar sections">
+          <button id="sidebar-documents-tab" role="tab" aria-selected="true" aria-controls="sidebar-documents-panel" tabindex="0" data-sidebar-tab="documents"><span data-i18n="Documents">Tài liệu</span></button>
+          <button id="sidebar-tools-tab" role="tab" aria-selected="false" aria-controls="sidebar-tools-panel" tabindex="-1" data-sidebar-tab="tools"><span data-i18n="Tools">Công cụ</span></button>
+        </div>
+        <div id="sidebar-documents-panel" class="sidebar-tab-panel" role="tabpanel" aria-labelledby="sidebar-documents-tab">
+        <p class="sidebar-intro"><span data-i18n="Select a sequence to start analyzing.">Chọn trình tự để bắt đầu phân tích.</span></p>
+        <label class="sidebar-filter-label" for="document-search"><span data-i18n="Find documents">Tìm tài liệu</span></label>
+        <input id="document-search" class="sidebar-search" type="search" placeholder="Tên trình tự…" data-i18n-placeholder="Sequence name…">
         <div class="sidebar-docs-section" id="sidebar-docs">
           <h3 class="sidebar-title" id="docs-toggle">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
             </svg>
-            Documents <span id="docs-count" style="opacity:0.5;font-weight:400;margin-left:auto;"></span>
+            <span data-i18n="Documents">Documents</span> <span id="docs-count" style="opacity:0.5;font-weight:400;margin-left:auto;"></span>
           </h3>
           <div id="file-tree" class="file-tree"></div>
         </div>
+        <p id="document-search-empty" class="sidebar-empty" hidden><span data-i18n="No matching sequences.">Không tìm thấy trình tự.</span></p>
         <!-- NCBI / Database Search -->
-        <div class="sidebar-section" style="border-bottom:1px solid var(--border-muted);padding:8px 12px;">
+        <details class="sidebar-ncbi"><summary><span data-i18n="Import from NCBI">Nhập từ NCBI</span> <span><span data-i18n="Online">Online</span></span></summary><div class="sidebar-section" style="padding:8px 12px;">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               style="opacity:0.5;">
@@ -135,11 +163,11 @@
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
             <span
-              style="font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Add
-              from NCBI</span>
+              style="font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;"><span data-i18n="Add from NCBI">Add
+              from NCBI</span></span>
           </div>
           <div style="display:flex;gap:4px;">
-            <input type="text" id="ncbi-search-input" placeholder="Accession or keyword..."
+            <input type="text" id="ncbi-search-input" placeholder="Accession or keyword..." data-i18n-placeholder="Accession or keyword..."
               style="flex:1;padding:5px 8px;background:var(--bg-tertiary);border:1px solid var(--border-default);border-radius:var(--radius-sm);color:var(--text-primary);font-size:11px;outline:none;font-family:var(--font-sans);" />
             <select id="ncbi-db-select"
               style="padding:5px 4px;background:var(--bg-tertiary);border:1px solid var(--border-default);border-radius:var(--radius-sm);color:var(--text-primary);font-size:10px;width:55px;">
@@ -147,22 +175,17 @@
               <option value="protein">PRT</option>
             </select>
             <button id="ncbi-fetch-btn"
-              style="padding:5px 8px;background:var(--accent-cyan);border:none;border-radius:var(--radius-sm);color:#000;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;">Fetch</button>
+              style="padding:5px 8px;background:var(--accent-cyan);border:none;border-radius:var(--radius-sm);color:#000;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;"><span data-i18n="Fetch">Fetch</span></button>
           </div>
           <div id="ncbi-status" style="font-size:10px;color:var(--text-muted);margin-top:4px;display:none;"></div>
         </div>
-        <div class="sidebar-section sidebar-tools-section">
-          <h3 class="sidebar-title">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="3" width="7" height="7" />
-              <rect x="14" y="3" width="7" height="7" />
-              <rect x="3" y="14" width="7" height="7" />
-              <rect x="14" y="14" width="7" height="7" />
-            </svg>
-            Tools
-          </h3>
-          <nav class="tool-nav">
-            <div class="tool-group-label">View & Edit</div>
+        </details></div>
+        <div id="sidebar-tools-panel" class="sidebar-section sidebar-tools-section sidebar-tab-panel" role="tabpanel" aria-labelledby="sidebar-tools-tab" hidden>
+          <p class="sidebar-intro"><span data-i18n="Choose a tool group or search by name.">Chọn nhóm công cụ hoặc tìm theo tên.</span></p>
+          <label class="sidebar-filter-label" for="tool-search"><span data-i18n="Find tools">Tìm công cụ</span></label>
+          <input id="tool-search" class="sidebar-search" type="search" placeholder="VD: primer, alignment…" data-i18n-placeholder="e.g. primer, alignment…">
+          <p id="tool-search-empty" class="sidebar-empty" hidden><span data-i18n="No matching tools.">Không tìm thấy công cụ.</span></p>
+          <nav class="tool-nav" aria-label="Analysis tools"><details class="tool-group" open><summary><span><strong><span data-i18n="View & edit">Xem & chỉnh sửa</span></strong><small><span data-i18n="Sequences and maps">Trình tự và bản đồ</span></small></span><span class="tool-group-count">4</span></summary><div class="tool-group-items">
             <button class="tool-btn active" data-tool="viewer">
               <svg class="tool-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
@@ -171,7 +194,7 @@
                 <line x1="8" y1="13" x2="16" y2="13" />
                 <line x1="8" y1="17" x2="16" y2="17" />
               </svg>
-              Sequence Viewer
+              <span data-i18n="Sequence View">Sequence View</span>
             </button>
             <button class="tool-btn" data-tool="editor">
               <svg class="tool-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -179,7 +202,7 @@
                 <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                 <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
               </svg>
-              Sequence Editor
+              <span data-i18n="Sequence Editor">Sequence Editor</span>
             </button>
             <button class="tool-btn" data-tool="linearmap">
               <svg class="tool-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -191,7 +214,7 @@
                 <circle cx="2" cy="12" r="1.5" fill="currentColor" />
                 <circle cx="22" cy="12" r="1.5" fill="currentColor" />
               </svg>
-              Linear Map
+              <span data-i18n="Linear Map">Linear Map</span>
             </button>
             <button class="tool-btn" data-tool="plasmid">
               <svg class="tool-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -201,10 +224,10 @@
                 <path d="M19 8 A3 3 0 0 1 20 12" stroke-width="3" opacity="0.4" />
                 <path d="M5 16 A3 3 0 0 1 5 12" stroke-width="3" opacity="0.4" />
               </svg>
-              Plasmid Map
+              <span data-i18n="Plasmid Map">Plasmid Map</span>
             </button>
 
-            <div class="tool-group-label">Analysis</div>
+            </div></details><details class="tool-group" ><summary><span><strong><span data-i18n="Analysis">Phân tích</span></strong><small><span data-i18n="Compare and summarize">So sánh và thống kê</span></small></span><span class="tool-group-count">6</span></summary><div class="tool-group-items">
             <button class="tool-btn" data-tool="alignment">
               <svg class="tool-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
@@ -213,7 +236,7 @@
                 <line x1="3" y1="14" x2="17" y2="14" />
                 <line x1="5" y1="18" x2="19" y2="18" />
               </svg>
-              Alignment
+              <span data-i18n="Alignment">Alignment</span>
             </button>
             <button class="tool-btn" data-tool="dotplot">
               <svg class="tool-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -225,7 +248,7 @@
                 <circle cx="16" cy="16" r="1" fill="currentColor" />
                 <circle cx="19" cy="19" r="1" fill="currentColor" />
               </svg>
-              Dot Plot
+              <span data-i18n="Dot Plot">Dot Plot</span>
             </button>
             <button class="tool-btn" data-tool="phylo">
               <svg class="tool-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -237,7 +260,7 @@
                 <circle cx="18" cy="18" r="2" />
                 <circle cx="4" cy="20" r="2" />
               </svg>
-              Phylogenetic Tree
+              <span data-i18n="Phylogenetic Tree">Phylogenetic Tree</span>
             </button>
             <button class="tool-btn" data-tool="stats">
               <svg class="tool-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -247,7 +270,7 @@
                 <line x1="6" y1="20" x2="6" y2="14" />
                 <line x1="2" y1="20" x2="22" y2="20" />
               </svg>
-              Statistics
+              <span data-i18n="Statistics">Statistics</span>
             </button>
             <button class="tool-btn" data-tool="motif">
               <svg class="tool-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -257,24 +280,24 @@
                 <line x1="8" y1="10" x2="12" y2="10" />
                 <line x1="10" y1="8" x2="10" y2="12" />
               </svg>
-              Motif Finder
+              <span data-i18n="Motif Finder">Motif Finder</span>
             </button>
             <button class="tool-btn" data-tool="properties">
               <svg class="tool-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
               </svg>
-              Properties Plot
+              <span data-i18n="Properties Plot">Properties Plot</span>
             </button>
 
-            <div class="tool-group-label">Molecular Biology</div>
+            </div></details><details class="tool-group" ><summary><span><strong><span data-i18n="Molecular biology">Sinh học phân tử</span></strong><small><span data-i18n="Primers, enzymes and translation">Primer, enzyme và dịch mã</span></small></span><span class="tool-group-count">4</span></summary><div class="tool-group-items">
             <button class="tool-btn" data-tool="restriction">
               <svg class="tool-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
                 <path d="M14.5 2H18l-4 8 4 8h-3.5L11 12z" />
                 <path d="M5.5 2H9l4 8-4 8H5.5l4-8z" />
               </svg>
-              Restriction Analysis
+              <span data-i18n="Restriction Analysis">Restriction Analysis</span>
             </button>
             <button class="tool-btn" data-tool="primer">
               <svg class="tool-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -284,7 +307,7 @@
                 <path d="M8 12a4 4 0 108 0 4 4 0 00-8 0" />
                 <line x1="12" y1="8" x2="12" y2="16" />
               </svg>
-              Primer Design
+              <span data-i18n="Primer Design">Primer Design</span>
             </button>
             <button class="tool-btn" data-tool="translation">
               <svg class="tool-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -295,7 +318,7 @@
                 <path d="M4 18h6" />
                 <path d="M17 14l3 4-3 4" />
               </svg>
-              6-Frame Translation
+              <span data-i18n="6-Frame Translation">6-Frame Translation</span>
             </button>
             <button class="tool-btn" data-tool="codon">
               <svg class="tool-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -304,10 +327,10 @@
                 <path d="M2 17l10 5 10-5" />
                 <path d="M2 12l10 5 10-5" />
               </svg>
-              Codon Optimization
+              <span data-i18n="Codon Optimization">Codon Optimization</span>
             </button>
 
-            <div class="tool-group-label">Structure</div>
+            </div></details><details class="tool-group" ><summary><span><strong><span data-i18n="3D structure">Cấu trúc 3D</span></strong><small><span data-i18n="Explore proteins">Khám phá protein</span></small></span><span class="tool-group-count">1</span></summary><div class="tool-group-items">
             <button class="tool-btn" data-tool="protein3d">
               <svg class="tool-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
@@ -316,10 +339,10 @@
                 <path d="M12 12v10" opacity="0.4" />
                 <path d="M12 12L4 6.5" opacity="0.4" />
               </svg>
-              3D Protein Viewer
+              <span data-i18n="3D Protein Viewer">3D Protein Viewer</span>
             </button>
 
-            <div class="tool-group-label">Search</div>
+            </div></details><details class="tool-group" ><summary><span><strong><span data-i18n="Database search">Tra cứu</span></strong><small><span data-i18n="Find similar sequences">Tìm trình tự tương đồng</span></small></span><span class="tool-group-count">1</span></summary><div class="tool-group-items">
             <button class="tool-btn" data-tool="blast">
               <svg class="tool-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
@@ -327,9 +350,9 @@
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 <line x1="8" y1="11" x2="14" y2="11" />
               </svg>
-              BLAST Search
+              <span data-i18n="BLAST Search">BLAST Search</span>
             </button>
-          </nav>
+          </div></details></nav>
         </div>
       </aside>
 
@@ -347,7 +370,7 @@
     <!-- Bottom Status Bar -->
     <footer id="status-bar">
       <div class="status-left">
-        <span id="status-msg">Ready</span>
+        <span id="status-msg"><span data-i18n="Ready">Ready</span></span>
       </div>
       <div class="status-right">
         <span id="status-seq-info"></span>
@@ -358,12 +381,12 @@
   </div>
 
   <!-- Hidden file input for import -->
-  <input type="file" id="file-input" accept=".fasta,.fa,.fna,.gb,.gbk,.genbank,.txt,.ab1,.seq" multiple
+  <input type="file" id="file-input" accept=".fasta,.fa,.fna,.faa,.gb,.gbk,.genbank,.txt,.seq,.tree,.nwk,.newick,.nex,.nxs,.nexus" multiple
     style="display:none" />
 
   <!-- Modal overlay -->
   <div id="modal-overlay" class="modal-overlay hidden">
-    <div id="modal-content" class="modal-content"></div>
+    <div id="modal-content" class="modal-content" role="dialog" aria-modal="true" aria-label="BioGenesis"></div>
   </div>
 
   <script type="module" src="/src/main.js"></script>

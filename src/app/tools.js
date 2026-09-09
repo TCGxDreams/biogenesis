@@ -6,7 +6,7 @@
 // and wire it. Adding a tool means one entry in each of those two objects plus a
 // button in index.html — no control flow to edit.
 
-import { renderSequenceViewer, bindSequenceViewerEvents } from '../components/SequenceViewer.js';
+import { sequenceViewMarkup } from './sequenceViewHost.js';
 import { renderSequenceEditor } from '../components/SequenceEditor.js';
 import { renderLinearMap, bindLinearMapEvents } from '../components/LinearMap.js';
 import { renderPlasmidMap, bindPlasmidMapEvents } from '../components/PlasmidMap.js';
@@ -54,8 +54,10 @@ export { ALL_TYPES, DEFAULT_TOOL_ID, toolUnavailableReason, isToolAvailable } fr
  */
 const RENDERERS = {
     viewer: {
-        render: seq => renderSequenceViewer(seq),
-        bind: seq => bindSequenceViewerEvents(seq),
+        render: () => sequenceViewMarkup(),
+        // The view mounts itself onto the slot and manages its own lifetime;
+        // panel.js tears the previous instance down before re-rendering.
+        bind: () => {},
     },
     editor: {
         // renderSequenceEditor takes only the sequence; main.js used to pass

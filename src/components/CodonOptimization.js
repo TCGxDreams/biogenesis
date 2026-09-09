@@ -12,7 +12,7 @@ export function renderCodonOptimization(seq) {
     if (seq.type === 'protein') {
         return `
       <div class="panel active">
-        <div class="panel-header"><h2>Codon Optimization</h2><p>Requires a DNA sequence</p></div>
+        <div class="panel-header"><h2><span data-i18n="Codon Optimization">Codon Optimization</span></h2><p>Requires a DNA sequence</p></div>
         <div class="panel-body"><div class="empty-state"><p class="empty-state-text">Please select a DNA sequence</p></div></div>
       </div>`;
     }
@@ -26,7 +26,7 @@ export function renderCodonOptimization(seq) {
     return `
     <div class="panel active">
       <div class="panel-header">
-        <h2>Codon Optimization</h2>
+        <h2><span data-i18n="Codon Optimization">Codon Optimization</span></h2>
         <p>Optimize codon usage for expression in a target organism — ${escapeHtml(seq.name)}</p>
       </div>
       <div class="panel-controls">

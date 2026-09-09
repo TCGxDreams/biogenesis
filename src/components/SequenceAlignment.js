@@ -4,6 +4,8 @@
 // BioGenesis — Sequence Alignment Component v2
 // ============================================
 
+import { escapeHtml } from '../app/ui.js';
+
 import { buildAlignmentReport } from '../core/alignment-report.js';
 import { BioError } from '../core/errors.js';
 import { getNucleotideClass, getAminoAcidClass } from '../utils/bioUtils.js';
@@ -12,7 +14,7 @@ export function renderAlignment(sequences) {
   if (sequences.length < 2) {
     return `
       <div class="panel active">
-        <div class="panel-header"><h2>Sequence Alignment</h2><p>Pairwise & Multiple Sequence Alignment</p></div>
+        <div class="panel-header"><h2><span data-i18n="Sequence Alignment">Sequence Alignment</span></h2><p>Pairwise & Multiple Sequence Alignment</p></div>
         <div class="panel-body"><div class="empty-state"><span class="empty-state-icon">🧬</span><p class="empty-state-text">Please import at least 2 sequences to align.</p></div></div>
       </div>`;
   }
@@ -31,10 +33,10 @@ export function renderAlignment(sequences) {
     <div class="panel active" id="panel-alignment">
       <div class="panel-header" style="display:flex;justify-content:space-between;align-items:flex-end;">
         <div>
-          <h2>Sequence Alignment</h2>
+          <h2><span data-i18n="Sequence Alignment">Sequence Alignment</span></h2>
           <p>Global (NW), Local (SW), and Multiple Sequence Alignment (MSA)</p>
         </div>
-        <button class="btn btn-secondary" id="align-export-btn" style="font-size:11px;padding:6px 14px;display:none;">↓ Export FASTA</button>
+        <button class="btn btn-secondary" id="align-export-btn" style="font-size:11px;padding:6px 14px;display:none;"><span data-i18n="↓ Export FASTA">↓ Export FASTA</span></button>
       </div>
 
       <div class="panel-controls" style="display:flex;gap:20px;align-items:stretch;">
@@ -42,8 +44,8 @@ export function renderAlignment(sequences) {
         <!-- Sequence Selection -->
         <div style="flex:1;">
           <label class="form-label" style="display:flex;justify-content:space-between;">
-            Select Sequences
-            <span style="font-size:10px;color:var(--text-muted);font-weight:normal;" id="align-sel-count">3 selected</span>
+            <span data-i18n="Select Sequences">Select Sequences</span>
+            <span style="font-size:10px;color:var(--text-muted);font-weight:normal;" id="align-sel-count">${Math.min(3, sequences.length)} selected</span>
           </label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:120px;overflow-y:auto;padding-right:5px;border:1px solid var(--border-muted);border-radius:var(--radius-md);padding:8px;background:var(--bg-elevated);">
             ${checkboxHtml}
@@ -53,14 +55,14 @@ export function renderAlignment(sequences) {
         <!-- Algorithm & Settings -->
         <div style="width:280px;display:flex;flex-direction:column;gap:12px;">
           <div class="form-group" style="margin:0;">
-            <label class="form-label">Algorithm</label>
+            <label class="form-label"><span data-i18n="Algorithm">Algorithm</span></label>
             <select class="form-select" id="align-algo">
                <option value="msa" selected>Progressive MSA (Global)</option>
                <option value="nw">Needleman-Wunsch (Pairwise Global)</option>
                <option value="sw">Smith-Waterman (Pairwise Local)</option>
             </select>
           </div>
-          <button class="btn btn-primary" id="run-alignment-btn" style="margin-top:auto;width:100%;padding:8px;">▶ Run Alignment</button>
+          <button class="btn btn-primary" id="run-alignment-btn" style="margin-top:auto;width:100%;padding:8px;"><span data-i18n="▶ Run Alignment">▶ Run Alignment</span></button>
         </div>
       </div>
 
@@ -83,7 +85,7 @@ export function renderAlignment(sequences) {
  * @param {'msa'|'nw'|'sw'} [algo]
  * @returns {string} HTML
  */
-export function computeAndRenderAlignment(selectedSeqs, algo = 'msa') {
+export function computeAndRenderAlignment(selectedSeqs, algo = 'msa', onReport = null) {
   let report;
   try {
     report = buildAlignmentReport(selectedSeqs, { algorithm: algo });
@@ -92,6 +94,7 @@ export function computeAndRenderAlignment(selectedSeqs, algo = 'msa') {
     throw e;
   }
 
+  onReport?.(report);
   const { isProtein, consensus, conservation, pairwise } = report;
   const alignedStrings = report.rows.map(r => r.aligned);
   const seqsObj = report.rows.map(r => ({ name: r.name }));
@@ -100,18 +103,18 @@ export function computeAndRenderAlignment(selectedSeqs, algo = 'msa') {
   if (pairwise === null) {
     statsHtml = `
           <div class="stats-grid" style="margin-bottom:16px;">
-            <div class="stat-card"><div class="stat-title">Sequences</div><div class="stat-value">${alignedStrings.length}</div></div>
-            <div class="stat-card"><div class="stat-title">Alignment Length</div><div class="stat-value">${report.length}<span class="stat-unit">${isProtein ? 'aa' : 'bp'}</span></div></div>
-            <div class="stat-card"><div class="stat-title">Algorithm</div><div class="stat-value" style="font-size:15px;">Progressive MSA</div></div>
+            <div class="stat-card"><div class="stat-title"><span data-i18n="Sequences">Sequences</span></div><div class="stat-value">${alignedStrings.length}</div></div>
+            <div class="stat-card"><div class="stat-title"><span data-i18n="Alignment Length">Alignment Length</span></div><div class="stat-value">${report.length}<span class="stat-unit">${isProtein ? 'aa' : 'bp'}</span></div></div>
+            <div class="stat-card"><div class="stat-title"><span data-i18n="Algorithm">Algorithm</span></div><div class="stat-value" style="font-size:15px;">Progressive MSA</div></div>
           </div>
         `;
   } else {
     statsHtml = `
           <div class="stats-grid" style="margin-bottom:16px;">
-            <div class="stat-card"><div class="stat-title">Identity</div><div class="stat-value">${pairwise.identity.toFixed(1)}<span class="stat-unit">%</span></div></div>
-            <div class="stat-card"><div class="stat-title">Gaps</div><div class="stat-value">${pairwise.gaps}</div></div>
-            <div class="stat-card"><div class="stat-title">Score</div><div class="stat-value">${pairwise.score}</div></div>
-            <div class="stat-card"><div class="stat-title">Length</div><div class="stat-value">${pairwise.length}<span class="stat-unit">${isProtein ? 'aa' : 'bp'}</span></div></div>
+            <div class="stat-card"><div class="stat-title"><span data-i18n="Identity">Identity</span></div><div class="stat-value">${pairwise.identity.toFixed(1)}<span class="stat-unit">%</span></div></div>
+            <div class="stat-card"><div class="stat-title"><span data-i18n="Gaps">Gaps</span></div><div class="stat-value">${pairwise.gaps}</div></div>
+            <div class="stat-card"><div class="stat-title"><span data-i18n="Score">Score</span></div><div class="stat-value">${pairwise.score}</div></div>
+            <div class="stat-card"><div class="stat-title"><span data-i18n="Length">Length</span></div><div class="stat-value">${pairwise.length}<span class="stat-unit">${isProtein ? 'aa' : 'bp'}</span></div></div>
           </div>
         `;
   }
@@ -129,7 +132,7 @@ export function computeAndRenderAlignment(selectedSeqs, algo = 'msa') {
     const consBlock = consensus.substring(i, end);
     rowsHtml += `
           <div class="alignment-row" style="background:var(--bg-tertiary);border-bottom:1px solid var(--border-muted);padding-bottom:4px;margin-bottom:6px;">
-            <div class="alignment-label" style="font-weight:700;color:var(--text-primary);">Consensus</div>
+            <div class="alignment-label" style="font-weight:700;color:var(--text-primary);"><span data-i18n="Consensus">Consensus</span></div>
             <div class="alignment-seq" style="font-weight:700;">${colorCode(consBlock, isProtein, null)}</div>
           </div>
         `;
@@ -161,7 +164,7 @@ export function computeAndRenderAlignment(selectedSeqs, algo = 'msa') {
 
     rowsHtml += `
           <div class="alignment-row" style="margin-top:4px;padding-top:4px;border-top:1px solid var(--border-muted);">
-            <div class="alignment-label" style="font-size:9px;color:var(--text-muted);text-transform:uppercase;">Conservation</div>
+            <div class="alignment-label" style="font-size:9px;color:var(--text-muted);text-transform:uppercase;"><span data-i18n="Conservation">Conservation</span></div>
             <div class="alignment-seq" style="display:flex;padding-left:0;">${barGraphHtml}</div>
           </div>
         `;
@@ -176,6 +179,7 @@ export function computeAndRenderAlignment(selectedSeqs, algo = 'msa') {
 
   return `
       ${statsHtml}
+      ${selectedSeqs.some(s => s.sequence.length > 3000) ? '<p role="status">Only the first 3,000 residues of each sequence are analyzed and exported.</p>' : ''}
       <div style="margin-top:16px;">
         ${blocksHtml}
       </div>
@@ -212,9 +216,4 @@ function colorCode(seq, isProtein, consensusBlock) {
     html += `<span class="${cls}" style="opacity:${opacity};font-weight:${fontWeight};">${displayChar}</span>`;
   }
   return html;
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }

@@ -41,7 +41,7 @@ function renderFileTree() {
                         ? 'CIR'
                         : 'DNA';
             return `
-      <div class="file-item${isActive ? ' active' : ''}" data-idx="${i}">
+      <button type="button" class="file-item${isActive ? ' active' : ''}" data-idx="${i}">
         <svg class="file-icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           ${
               seq.type === 'protein'
@@ -53,14 +53,15 @@ function renderFileTree() {
         </svg>
         <span class="file-name">${app.escapeHtml(seq.name)}</span>
         <span class="file-type">${typeLabel}</span>
-      </div>`;
+      </button>`;
         })
-        .join('');
+        .join('') + (app.state.analysisDocuments || []).map(doc => `<button type="button" class="file-item${doc.id === app.state.activeAnalysisId ? ' active' : ''}" data-document-id="${app.escapeHtml(doc.id)}"><span class="file-name">${app.escapeHtml(doc.name)}</span><span class="file-type">${doc.kind === 'alignment' ? 'ALN' : 'TREE'}</span></button>`).join('');
 
     // Event delegation — single listener instead of N listeners
     if (!tree._delegated) {
         tree.addEventListener('click', e => {
             const item = e.target.closest('.file-item');
+            if (item?.dataset.documentId) { app.openAnalysisDocument(item.dataset.documentId); return; }
             if (item && item.dataset.idx != null) {
                 app.openSequence(parseInt(item.dataset.idx));
             }
@@ -84,5 +85,5 @@ function updateFileTreeActive(newIdx) {
 // Update document count badge
 function updateDocsCount() {
     const el = document.getElementById('docs-count');
-    if (el) el.textContent = `(${app.state.sequences.length})`;
+    if (el) el.textContent = `(${app.state.sequences.length + (app.state.analysisDocuments || []).length})`;
 }
