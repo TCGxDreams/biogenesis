@@ -49,3 +49,16 @@ venv/
 .claude/
 REVIEW.md
 GENEIOUS_IMPORT_REVIEW.md
+
+# Ghi chu noi bo va cau hinh theo may
+.claude/
+REVIEW.md
+GENEIOUS_IMPORT_REVIEW.md
+
+# Tai lieu noi bo va cau hinh theo may (khong len git)
+/.claude/
+/DATA_DOCUMENTS.md
+/GENEIOUS_IMPORT_REVIEW.md
+/LEARNING.md
+/REVIEW.md
+/SUPABASE_SETUP.md

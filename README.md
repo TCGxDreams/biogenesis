@@ -2,7 +2,7 @@
   <img src="https://img.shields.io/badge/BioGenesis-Bioinformatics%20Suite-06b6d4?style=for-the-badge&logo=dna&logoColor=white" alt="BioGenesis" />
 </p>
 
-<h1 align="center">🧬 BioGenesis</h1>
+<h1 align="center">BioGenesis</h1>
 
 <p align="center">
   <strong>A premium, browser-based bioinformatics suite for DNA, RNA, and protein analysis — with integrated AI-powered binding site prediction.</strong>
@@ -22,23 +22,23 @@
 
 ---
 
-## ✨ Features
+## Features
 
-### 📁 Sequence Management
+### Sequence Management
 
 - Import/export FASTA and GenBank files
 - 20+ built-in sample sequences (plasmids, genes, proteins, RNA)
 - **NCBI Fetch** — search and import sequences directly from NCBI databases (DNA/Protein)
 - Scrollable document browser with real-time search filter
 
-### 🔬 Viewer & Editor
+### Viewer & Editor
 
 - **Sequence Viewer** — color-coded nucleotide/amino acid display with chunked rendering for large sequences
 - **Sequence Editor** — edit, insert, delete, and annotate sequences
 - **Linear Map** — linear genome/gene map with annotated features
 - **Plasmid Map** — circular plasmid map visualization
 
-### 📊 Analysis Tools
+### Analysis Tools
 
 - **Sequence Alignment** — Needleman-Wunsch (global) & Smith-Waterman (local) pairwise alignment
 - **Dot Plot** — visual sequence comparison matrix
@@ -47,21 +47,21 @@
 - **Motif Finder** — regex-based motif/pattern search with highlighting
 - **Sequence Properties** — sliding window GC, hydrophobicity, charge, flexibility plots
 
-### 🧪 Molecular Biology
+### Molecular Biology
 
 - **Restriction Analysis** — digest simulation with 20+ restriction enzymes
 - **Primer Design** — automated primer pair design with Tm calculation
 - **6-Frame Translation** — all reading frame translations with start/stop codon display
 - **Codon Optimization** — codon usage analysis and optimization for host expression
 
-### 🔬 3D Structure & AI Binding Site Prediction
+### 3D Structure & AI Binding Site Prediction
 
 - **3D Protein Viewer** — interactive molecular visualization powered by [3Dmol.js](https://3dmol.csb.pitt.edu/)
   - **RCSB PDB** — load experimental structures from the Protein Data Bank
   - **AlphaFold DB** — load AI-predicted structures via UniProt accession
   - Style controls: Cartoon, Stick, Space-Fill, Wireframe, Ball & Cross
   - Color schemes: Rainbow, Chain, Secondary Structure, Residue, Confidence (pLDDT)
-- **🧠 GGNN2025 Binding Site Prediction** _(requires Python backend)_
+- **GGNN2025 Binding Site Prediction** _(requires Python backend)_
   - Predict ligand-binding residues using a Geometric Graph Neural Network
   - Configurable confidence threshold (0.20–0.95), top-N results, and color modes
   - **Heatmap** (yellow→orange→red gradient by confidence), **Flat red**, **Pocket clusters** coloring
@@ -69,7 +69,7 @@
 
 ---
 
-## 🧠 GGNN2025 — AI Binding Site Prediction
+## GGNN2025 — AI Binding Site Prediction
 
 BioGenesis integrates **GGNN2025**, a lightweight Geometric Graph Neural Network (276K parameters) for protein-ligand binding site prediction.
 
@@ -85,8 +85,8 @@ BioGenesis integrates **GGNN2025**, a lightweight Geometric Graph Neural Network
 
 ### Paper & Code
 
-- 📄 **Paper (Zenodo):** [https://doi.org/10.5281/zenodo.18061054](https://doi.org/10.5281/zenodo.18061054)
-- 💻 **GGNN2025 Repository:** [https://github.com/TCGxBill/GGNN2025](https://github.com/TCGxBill/GGNN2025)
+- **Paper (Zenodo):** [https://doi.org/10.5281/zenodo.18061054](https://doi.org/10.5281/zenodo.18061054)
+- **GGNN2025 Repository:** [https://github.com/TCGxBill/GGNN2025](https://github.com/TCGxBill/GGNN2025)
 
 ### Citation
 
@@ -118,7 +118,7 @@ lsof -ti:8000 | xargs kill -9 2>/dev/null || true
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -168,7 +168,7 @@ pytest backend/tests -m "not slow"
 
 ---
 
-## 🔌 Headless API
+## Headless API
 
 Every analysis in BioGenesis is also callable without a browser. The domain
 logic lives in `src/core/`, and `tools/` wraps it in two surfaces that share one
@@ -209,7 +209,7 @@ curl -X POST localhost:8787/tools/computeSequenceStats \
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 BioGenesis/
@@ -256,7 +256,7 @@ BioGenesis/
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Technology              | Purpose                                  |
 | ----------------------- | ---------------------------------------- |
@@ -272,30 +272,30 @@ BioGenesis/
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for full details.
 
-### What the MIT License Allows ✅
+### What the MIT License Allows
 
 - **Commercial use** — You can use this in commercial products
 - **Modification** — You can change the source code
 - **Distribution** — You can distribute your copy
 - **Private use** — You can use and modify privately
 
-### What You Must Do 📋
+### What You Must Do
 
 - **Include copyright** — Keep the original copyright notice in all copies
 - **Include license** — Include the MIT License text with any substantial copy
 
-### What Is Not Covered ⚠️
+### What Is Not Covered
 
 - **Liability** — No warranty is provided; use at your own risk
 - **GGNN2025 model weights** — The trained model checkpoints are covered by separate academic use terms (see [GGNN2025 repo](https://github.com/TCGxBill/GGNN2025))
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Feel free to:
 
@@ -307,7 +307,7 @@ Contributions are welcome! Feel free to:
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [3Dmol.js](https://3dmol.csb.pitt.edu/) — 3D molecular visualization library
 - [RCSB PDB](https://www.rcsb.org/) — Protein Data Bank
@@ -318,7 +318,43 @@ Contributions are welcome! Feel free to:
 ---
 
 <p align="center">
-  Made with 🧬 by <a href="https://github.com/TCGxBill">TCGxBill</a> &nbsp;|&nbsp;
+  Made by <a href="https://github.com/TCGxBill">TCGxBill</a> &nbsp;|&nbsp;
   <a href="https://doi.org/10.5281/zenodo.18061054">GGNN2025 Paper</a> &nbsp;|&nbsp;
   <a href="https://github.com/TCGxBill/GGNN2025">GGNN2025 Code</a>
 </p>
+
+## Learning library and database search
+
+The sidebar includes **Learn & sample library** and **Database search**. The library provides 16 explicitly synthetic teaching sequences in five packs, three beginner lessons with one-click actions, two-choice knowledge checks and locally saved progress, and links to NCBI, UniProt, EMBL-EBI and Geneious documentation. New content supports VI/EN.
+
+Search NCBI Nucleotide, NCBI Protein or UniProtKB, review summaries, and import a chosen FASTA record with source metadata. NCBI results are paginated; UniProt currently previews the first 10 matches. Imports are limited to 100,000 residues, with cancellation, timeouts, validation and duplicate detection by source/accession. This imports FASTA sequences, not original GenBank annotations.
+
+## Device layouts
+
+The workspace uses a navigation drawer and an Actions menu at widths up to 760px, a compact sidebar on tablets and split editor windows, and the full toolbar on desktop. Touch devices use larger controls. The sequence canvas supports tap-to-select and vertical swipe-to-scroll; use a coordinate range plus **Go** to select a region, and **Selection actions** for operations otherwise available from the context menu. Beginner guides can be collapsed without losing their current question.
+
+Responsive navigation state is covered by automated tests. Physical-device visual and touch testing is still required, especially on iOS Safari, Android Chrome and tablet landscape layouts.
+
+## Tài liệu phân tích
+
+Nhập và lưu alignment FASTA, cây Newick, NEXUS cơ bản; mở lại kết quả alignment/cây đã lưu cùng nguồn và đầu vào.
+
+## Protein interaction workflow update
+
+The interface now uses blue and white. The 3D viewer accepts local PDB files (up to 5 MB), and GGNN2025 result residues can be clicked to focus the matching chain/residue. Predictions support cancellation, a 120-second timeout, validation of scores, and JSON export with structure source and settings. Stale responses are ignored after changing structures. mmCIF viewing remains available, but the current prediction endpoint requires PDB.
+
+This update improves use of the existing protein–ligand binding-site model; it does not retrain weights, establish higher predictive accuracy, or add protein–protein interaction/docking prediction. The sequence grouping color mode is explicitly labelled as sequence groups, not geometric pockets. API tests use a mocked model; real checkpoint inference and browser/WebGL interaction still require verification.
+
+Protein names can now be entered in the same field as PDB/UniProt IDs. Name searches use UniProt, display up to ten candidates with organism/accession/length, and require choosing the matching record before opening AlphaFold. Name lookup does not establish sequence identity. Protein document headers include a direct **3D / Predict** action that carries the current sequence context; known structure IDs load directly, while proteins without IDs start a name lookup. Search errors, empty results, timeouts and stale responses are handled in the viewer.
+
+### PDB upload limit
+
+`/predict` explicitly configures Starlette's multipart text-part limit to `MAX_PDB_BYTES` (default 5 MiB), matching the browser's PDB limit. The total request allowance includes 64 KiB of form overhead; the PDB field is independently checked in UTF-8 bytes. Oversized multipart fields return HTTP 413 before inference. This requires Starlette 0.44+ and restarting/redeploying the backend; refreshing only the frontend does not update server parsing. API regression tests cover browser-style multipart above 1 MiB, exactly 5 MiB, over-limit payloads, and UTF-8 byte counts with mocked inference.
+
+### Action and editor usability
+
+Sequence Editor now provides editable sequence text, reset, and Save a copy with molecule-specific validation (100,000-residue limit). The source stays intact; edited copies intentionally omit old annotations and structure/accession mappings. Linear/Circular controls update and persist nucleotide topology. Opening a document falls back to Sequence View when the previously selected tool is incompatible. Align is disabled until at least two sequences exist. Shared dialogs have a close button, Escape/backdrop dismissal and keyboard focus cycling. Buttons use consistent blue/white styling, visible disabled states and touch targets.
+
+## Optional Supabase accounts and cloud saving
+
+The Account button supports email OTP sign-in, per-account IndexedDB workspaces, manual cloud Save/Open and opt-in 10-second autosave. Cloud writes omit navigation-only changes and use an atomic revision check; conflicts stop autosave instead of overwriting a newer snapshot. Guest mode works without Supabase configuration. Cloud storage currently uses a private Postgres JSONB snapshot (4 MiB client limit), not large-file object storage. Enabling it requires a Supabase project, the workspace table migration, an email OTP template, and the VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY environment keys.
