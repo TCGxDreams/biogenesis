@@ -145,6 +145,7 @@ function showModal(content) {
     const overlay = document.getElementById('modal-overlay');
     const modalContent = document.getElementById('modal-content');
     if (overlay && modalContent) {
+        modalContent.dispatchEvent?.(new Event('biogenesis:modal-close'));
         previousFocus = document.activeElement;
         modalContent.innerHTML = `<button type="button" class="modal-dismiss" aria-label="Đóng / Close">×</button>` + content;
         modalContent.setAttribute?.('role','dialog');
@@ -170,6 +171,7 @@ function showModal(content) {
 
 function hideModal() {
     const overlay = document.getElementById('modal-overlay');
+    document.getElementById('modal-content')?.dispatchEvent?.(new Event('biogenesis:modal-close'));
     if (overlay) overlay.classList.add('hidden');
     previousFocus?.focus?.();
 }

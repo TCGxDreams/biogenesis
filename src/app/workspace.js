@@ -1,4 +1,3 @@
-const logoUrl = new URL('../assets/logo.svg', import.meta.url).href;
 import { escapeHtml } from './ui.js';
 
 /** @param {import('../core/types.js').Sequence[]} sequences */
@@ -10,7 +9,7 @@ export function workspaceMarkup(sequences) {
       <div class="learning-banner"><div><span class="eyebrow"><span data-i18n="FIRST STEPS">BẮT ĐẦU TẠI ĐÂY · FIRST STEPS</span></span>
         <h2><span data-i18n="From DNA to protein">Từ DNA đến protein</span></h2><p><span data-en="New to bioinformatics? Follow 3 short steps. We prepare the sample and explain each result." data-vi="Mới học tin sinh học? Làm theo 3 bước ngắn. Ứng dụng chọn sẵn mẫu và giải thích từng kết quả.">Mới học tin sinh học? Làm theo 3 bước ngắn.</span></p>
         <button class="ws-primary" data-workspace-action="learn"><span data-en="Start my first lesson →" data-vi="Bắt đầu bài học đầu tiên →">Bắt đầu bài học đầu tiên →</span></button></div>
-        <div class="learning-sequence" aria-hidden="true"><img class="learning-brand" src="${logoUrl}" alt="" width="48" height="48"><span>DNA</span><b>ATG <em>GTG</em> AGC</b><i><span data-i18n="↓ Translation">↓ Translation</span></i><b>M <em>V</em> S</b><span>PROTEIN</span></div></div>
+        <div class="learning-sequence" aria-hidden="true"><span>DNA</span><b>ATG <em>GTG</em> AGC</b><i><span data-i18n="↓ Translation">↓ Translation</span></i><b>M <em>V</em> S</b><span>PROTEIN</span></div></div>
       <div class="workspace-shortcuts">
         <button data-workspace-action="library"><span class="shortcut-number">01</span><span><strong data-en="Learn with examples" data-vi="Học qua ví dụ">Learn with examples</strong><small data-en="Sample sequences · guided practice" data-vi="Mẫu có sẵn · thực hành từng bước">Sample sequences · guided practice</small></span><span aria-hidden="true">↗</span></button>
         <button data-workspace-action="database"><span class="shortcut-number">02</span><span><strong data-en="Explore databases" data-vi="Khám phá dữ liệu">Explore databases</strong><small data-en="NCBI & UniProt · search and import" data-vi="NCBI & UniProt · tìm và nhập">NCBI & UniProt · search and import</small></span><span aria-hidden="true">↗</span></button>

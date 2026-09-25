@@ -10,7 +10,7 @@ export function openDatabaseSearch(app, initialQuery = '', initialSource = 'nucl
     let records = [];
     let query = '';
     let source = initialSource;
-    app.showModal(`<section class="database-dialog"><div class="workspace-heading"><h2>${bi('Database search','Tìm cơ sở dữ liệu')}</h2><button id="db-close" class="ws-secondary">${bi('Close','Đóng')}</button></div>
+    app.showModal(`<section class="database-dialog"><div class="workspace-heading"><h2>${bi('Database search','Tìm cơ sở dữ liệu')}</h2></div>
     <p>${bi('Search first, review a record, then import. A network connection is required.','Tìm kiếm, xem bản ghi rồi nhập vào dự án. Cần kết nối mạng.')}</p>
     <form id="db-form" class="database-form"><label>${bi('Database','Cơ sở dữ liệu')}<select id="db-source"><option value="nucleotide">NCBI Nucleotide</option><option value="protein">NCBI Protein</option><option value="uniprot">UniProtKB</option></select></label><label>${bi('Keyword or accession','Từ khóa hoặc mã truy cập')}<input id="db-query" required maxlength="300" value="${esc(initialQuery)}" placeholder="BRCA1 / NM_000546.6 / P04637"></label><button id="db-search" class="ws-primary">${bi('Search','Tìm kiếm')}</button><button type="button" id="db-cancel" class="ws-secondary" disabled>${bi('Cancel','Hủy')}</button></form>
     <div class="database-examples">${bi('Try','Thử')}: <button data-db-example="BRCA1[Gene] AND Homo sapiens[Organism]" data-source="nucleotide">BRCA1 · human</button><button data-db-example="NP_000537.3" data-source="protein">p53 · NCBI</button><button data-db-example="P04637" data-source="uniprot">p53 · UniProt</button></div>
@@ -65,7 +65,7 @@ export function openDatabaseSearch(app, initialQuery = '', initialSource = 'nucl
         } catch(error) { if (alive()) status(current.signal.aborted ? 'Import cancelled or timed out.' : error.message, current.signal.aborted ? 'Đã hủy hoặc hết thời gian nhập.' : `Nhập thất bại: ${error.message}`); }
         finally { clearTimeout(timer); if(alive()) busy(false); }
     }
-    el('db-close').onclick = () => {closed=true; controller?.abort(); app.hideModal();};
+    document.getElementById('modal-content').addEventListener('biogenesis:modal-close', () => { closed=true; controller?.abort(); }, {once:true});
     el('db-cancel').onclick = () => controller?.abort();
     el('db-form').onsubmit = e => { e.preventDefault(); query=el('db-query').value.trim(); if(!query)return; source=el('db-source').value; page=0; run(); };
     el('db-prev').onclick = () => {page--;run();}; el('db-next').onclick = () => {page++;run();};

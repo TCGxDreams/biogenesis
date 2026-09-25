@@ -100,7 +100,6 @@
 .learning-banner { position: relative; overflow: hidden; border-radius: 12px; padding: 26px 32px; margin-bottom: 16px; background: var(--bg-elevated); border: 1px solid var(--border-default); border-left: 3px solid var(--accent-cyan); box-shadow: var(--shadow-sm); }
 .learning-banner h2 { font-size: 23px; letter-spacing: -.6px; margin-top: 12px; }
 .learning-sequence { position: relative; padding-left: 24px; gap: 6px; }
-.learning-brand { position: absolute; right: 0; top: 0; width: 36px; height: 36px; }
 .learning-sequence b { font-size: 20px; letter-spacing: 4px; color: var(--text-primary); }
 .learning-sequence b em { color: var(--accent-cyan); }
 .workspace-shortcuts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }

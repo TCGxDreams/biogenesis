@@ -24,7 +24,7 @@ export function initLearning(app) {
         return indices;
     }
     function openHub() {
-        app.showModal(`<div class="learning-hub"><div class="workspace-heading"><h2>${bi('Learning library','Thư viện thực hành')}</h2><button class="ws-secondary" id="hub-close">${bi('Close','Đóng')}</button></div>
+        app.showModal(`<div class="learning-hub"><div class="workspace-heading"><h2>${bi('Learning library','Thư viện thực hành')}</h2></div>
         <p>${bi('16 synthetic examples across 5 packs. These illustrate concepts; they are not reference genomes.','16 mẫu tổng hợp trong 5 bộ. Dùng để minh họa khái niệm, không phải hệ gen tham chiếu.')}</p>
         <h3>${bi('New here? Start with lesson 1. No prior knowledge needed.','Lần đầu sử dụng? Bắt đầu bài 1. Không cần biết trước thuật ngữ.')}</h3><div class="hub-grid">${LESSONS.map(lesson => {
             const done = lesson.steps.filter((_,i) => progress[`guided-v2-${lesson.id}-${i}`]).length;
@@ -36,7 +36,6 @@ export function initLearning(app) {
         <li><a href="https://www.ncbi.nlm.nih.gov/books/NBK25499/" target="_blank" rel="noopener noreferrer">NCBI · E-utilities reference ↗</a></li>
         <li><a href="https://www.uniprot.org/help/api_queries" target="_blank" rel="noopener noreferrer">UniProt · Searching protein records ↗</a></li>
         <li><a href="https://manual.geneious.com/en/latest/Sequences.html" target="_blank" rel="noopener noreferrer">Geneious Prime · Sequences & viewing ↗</a></li></ul></div>`);
-        document.getElementById('hub-close').onclick = app.hideModal;
         document.querySelectorAll('[data-load-pack]').forEach(button => button.onclick = () => {
             const pack = PRACTICE_PACKS.find(p => p.id === button.dataset.loadPack);
             const ids = loadPack(pack);
