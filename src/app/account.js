@@ -1,3 +1,4 @@
+import { showPasswordLogin, mountProfileForm } from './accountForms.js';
 import { supabase } from '../services/supabase.js';
 import { cloudPayload, validateCloudPayload } from '../services/cloudWorkspace.js';
 import { loadWorkspace, saveWorkspace } from '../utils/storage.js';
@@ -60,11 +61,12 @@ export function initAccount(app, store, user) {
         app.renderFileTree(); app.renderTabs(); app.renderWelcomeScreen();
         await store.flush();
     }
-    async function show() {
+    async function show(useCode = false) {
         if (!client) {
             app.showModal(`<h2>${bi('Lưu và đăng nhập','Save and sign in')}</h2><p>${bi('Cloud chưa được cấu hình. Workspace vẫn được lưu trên trình duyệt này.','Cloud is not configured. Your workspace is still saved in this browser.')}</p>`);
             return;
         }
+        if (!user && !useCode) { showPasswordLogin(app, client, () => { show(true).catch(failure); }); return; }
         if (!user) {
             app.showModal(`<h2>${bi('Đăng nhập bằng email','Sign in with email')}</h2><p>${bi('Nhận mã qua email. Dữ liệu khách và tài khoản được lưu riêng.','Receive an email code. Guest and account workspaces are separate.')}</p><form id="account-login" class="account-form"><label>Email<input class="form-input" id="account-email" type="email" autocomplete="email" required></label><button class="btn btn-primary">${bi('Gửi mã đăng nhập','Send sign-in code')}</button></form><form id="account-verify" class="account-form" hidden><label>${bi('Mã trong email','Email code')}<input id="account-code" class="form-input" inputmode="numeric" autocomplete="one-time-code" required></label><button class="btn btn-primary">${bi('Xác nhận','Verify')}</button></form><p id="account-status" role="status"></p>`);
             let email = '';
@@ -84,16 +86,31 @@ export function initAccount(app, store, user) {
             document.getElementById('account-verify')?.addEventListener('submit', async event => {
                 event.preventDefault();
                 const token = /** @type {HTMLInputElement} */(document.getElementById('account-code')).value.trim();
-                const {error} = await client.auth.verifyOtp({email,token,type:'email'});
-                if (error) failure(error);
+                const button = /** @type {HTMLButtonElement} */(/** @type {HTMLFormElement} */(event.currentTarget).querySelector('button'));
+                if (button.disabled) return;
+                button.disabled = true;
+                try {
+                    const {error} = await client.auth.verifyOtp({email,token,type:'email'});
+                    if (error) throw error;
+                } catch(error) { failure(error); }
+                finally { button.disabled = false; }
             });
             return;
         }
         app.showModal(`<h2>${bi('Workspace trên cloud','Cloud workspace')}</h2><p>${app.escapeHtml(user.email || '')}</p><p>${bi('Cloud lưu trình tự và tài liệu phân tích, tối đa 4 MiB mỗi workspace. Chọn Lưu để dùng bản trên máy, hoặc Mở để dùng bản cloud.','Cloud saves sequences and analysis documents, up to 4 MiB per workspace. Save uses this device; Open uses the cloud copy.')}</p><div class="analysis-actions"><button class="btn btn-primary" id="cloud-save" disabled>${bi('Lưu bản trên máy lên cloud','Save this device to cloud')}</button><button class="btn btn-secondary" id="cloud-open" disabled>${bi('Mở bản cloud','Open cloud copy')}</button><button class="btn btn-secondary" id="cloud-undo">${bi('Khôi phục trước lần mở cloud','Restore before last cloud load')}</button></div><label><input type="checkbox" id="cloud-auto" ${automatic ? 'checked' : ''}> ${bi('Tự lưu sau 10 giây ngừng chỉnh sửa (bật sau khi chọn Lưu/Mở)','Autosave after 10 seconds idle (enable after Save/Open)')}</label><p id="account-status" role="status">Đang kiểm tra cloud… / Checking cloud…</p><button class="btn btn-secondary" id="account-signout">${bi('Đăng xuất','Sign out')}</button>`);
+        mountProfileForm(app, client, user);
         const modal = document.getElementById('account-status');
         document.getElementById('account-signout')?.addEventListener('click', async () => {
-            await store.flush();
-            const {error} = await client.auth.signOut({scope:'local'}); if (error) failure(error);
+            const button = /** @type {HTMLButtonElement} */(document.getElementById('account-signout'));
+            button.disabled = true;
+            const wasAutomatic = automatic;
+            automatic = false; clearTimeout(timer);
+            try {
+                await store.flush();
+                const {error} = await client.auth.signOut({scope:'local'});
+                if (error) throw error;
+            } catch(error) { automatic = wasAutomatic; failure(error); }
+            finally { button.disabled = false; }
         });
         document.getElementById('cloud-auto')?.addEventListener('change', event => {
             const checkbox = /** @type {HTMLInputElement} */(event.target);
@@ -129,6 +146,7 @@ export function initAccount(app, store, user) {
     if (user) { const button = document.getElementById('account-button'); button?.setAttribute('data-vi','Đã đăng nhập'); button?.setAttribute('data-en','Signed in'); if (button) button.title = user.email || ''; }
     document.getElementById('account-button')?.addEventListener('click', () => { show().catch(failure); });
     if (client) client.auth.onAuthStateChange((_event,session) => {
+        if (session?.user.id === user?.id && session?.user) user = session.user;
         if ((session?.user.id || null) !== (user?.id || null)) {
             stopped = true; automatic = false; clearTimeout(timer);
             // Flush into the OLD account namespace before reloading into the new session.

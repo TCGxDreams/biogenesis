@@ -358,3 +358,14 @@ Sequence Editor now provides editable sequence text, reset, and Save a copy with
 ## Optional Supabase accounts and cloud saving
 
 The Account button supports email OTP sign-in, per-account IndexedDB workspaces, manual cloud Save/Open and opt-in 10-second autosave. Cloud writes omit navigation-only changes and use an atomic revision check; conflicts stop autosave instead of overwriting a newer snapshot. Guest mode works without Supabase configuration. Cloud storage currently uses a private Postgres JSONB snapshot (4 MiB client limit), not large-file object storage. Enabling it requires a Supabase project, the workspace table migration, an email OTP template, and the VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY environment keys.
+
+
+## Tổ chức tài liệu và cấu hình
+
+Xem [danh mục tài liệu](docs/README.md). Tài liệu được chia vào
+`docs/guides/`, `docs/architecture/` và `docs/reviews/`.
+
+Biến môi trường cho frontend nằm trong `config/env/`. Khi thiết lập máy mới,
+sao chép `config/env/.env.example` thành `config/env/.env.local` rồi điền cấu hình.
+Vite và Vitest đã được cấu hình đọc thư mục này. Khởi động lại dev server sau khi thay đổi env.
+Các tệp cấu hình bắt buộc của npm, VS Code và Vercel vẫn nằm ở gốc dự án.

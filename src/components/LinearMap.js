@@ -197,11 +197,11 @@ function buildFeatureTable(annotations, len) {
   let rows = annotations.map((a, i) => `
     <tr style="border-bottom:1px solid var(--border-muted);">
       <td style="padding:10px 12px;color:var(--text-muted);">${i + 1}</td>
-      <td style="padding:10px 12px;font-weight:600;color:var(--text-primary);">${escapeHtml(a.name || a.label || 'unnamed')}</td>
+      <td style="padding:10px 12px;font-weight:600;color:var(--text-primary);"><button class="feature-open-button" data-feature-start="${a.start}" data-feature-end="${a.end}">${escapeHtml(a.name || a.label || 'unnamed')} ↗</button></td>
       <td style="padding:10px 12px;"><span style="background:var(--bg-tertiary);padding:4px 8px;border-radius:var(--radius-sm);font-size:11px;color:var(--text-secondary);">${a.type || 'misc_feature'}</span></td>
       <td style="padding:10px 12px;font-family:var(--font-mono);font-size:12px;color:var(--accent-cyan);">${(a.start || 0) + 1}</td>
       <td style="padding:10px 12px;font-family:var(--font-mono);font-size:12px;color:var(--accent-cyan);">${a.end || 0}</td>
-      <td style="padding:10px 12px;font-size:12px;">${((a.end || 0) - (a.start || 0) + 1).toLocaleString()} ${len > 0 ? 'bp' : ''}</td>
+      <td style="padding:10px 12px;font-size:12px;">${((a.end || 0) - (a.start || 0)).toLocaleString()} ${len > 0 ? 'bp' : ''}</td>
       <td style="padding:10px 12px;font-weight:600;color:${a.direction === 'reverse' || a.strand === '-' ? 'var(--accent-pink)' : 'var(--accent-blue)'}">${a.direction === 'reverse' || a.strand === '-' ? 'Rev (-)' : 'Fwd (+)'}</td>
     </tr>
   `).join('');

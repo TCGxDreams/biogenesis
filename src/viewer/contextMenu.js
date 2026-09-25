@@ -87,6 +87,9 @@ export function openContextMenu({ x, y, items }) {
     menu.style.visibility = '';
 
     openMenu = menu;
+    const previousFocus = document.activeElement;
+    const enabledItems = Array.from(menu.querySelectorAll('button:not(:disabled)'));
+    /** @type {HTMLButtonElement|undefined} */ (enabledItems[0])?.focus();
 
     /** @param {Event} e */
     const onOutside = e => {
@@ -94,7 +97,17 @@ export function openContextMenu({ x, y, items }) {
     };
     /** @param {KeyboardEvent} e */
     const onKey = e => {
-        if (e.key === 'Escape') closeContextMenu();
+        if (e.key === 'Escape') {
+            e.preventDefault(); closeContextMenu();
+            if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
+        }
+        if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key) && enabledItems.length) {
+            e.preventDefault();
+            const current = enabledItems.indexOf(/** @type {Element} */ (document.activeElement));
+            const next = e.key === 'Home' ? 0 : e.key === 'End' ? enabledItems.length - 1 : (current + (e.key === 'ArrowDown' ? 1 : -1) + enabledItems.length) % enabledItems.length;
+            /** @type {HTMLButtonElement} */ (enabledItems[next]).focus();
+        }
+        if (e.key === 'Tab') closeContextMenu();
     };
 
     // Capture phase, so a handler that stops propagation cannot strand the menu.

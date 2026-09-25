@@ -8,9 +8,10 @@
 // otherwise the active tool from the registry. Also keeps the sidebar's tool
 // list in step with what the current selection can actually run.
 
+import { downloadFile } from '../utils/bioUtils.js';
 import { workspaceMarkup } from './workspace.js';
 import { TOOLS, getTool, toolUnavailableReason } from './tools.js';
-import { mountSequenceView, destroySequenceView } from './sequenceViewHost.js';
+import { mountSequenceView, destroySequenceView, activeSequenceView } from './sequenceViewHost.js';
 
 /**
  * The application context, assigned by createPanel(). Collaborators are looked up
@@ -155,12 +156,35 @@ function renderToolPanel() {
         tool.render(seq, context) + (tool.appendQuickActions ? renderQuickActions(seq) : '');
     tool.bind?.(seq, context);
     app.toolBindings[tool.id]?.(seq);
+    panel.querySelectorAll('[data-feature-start][data-feature-end]').forEach(button => {
+        button.addEventListener('click', () => {
+            const start = Number(button.dataset.featureStart), end = Number(button.dataset.featureEnd);
+            if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end <= start || end > seq.sequence.length) return;
+            app.switchTool('viewer');
+            activeSequenceView()?.select(start, end);
+            activeSequenceView()?.scrollToResidue(start);
+        });
+    });
 
     if (tool.id === 'viewer' && seq) {
         mountSequenceView(seq, {
             setStatus: msg => app.setStatus(msg),
             onExtract: range => extractToDocument(seq, range),
             onAnnotate: range => app.showAnnotationDialog(seq, range),
+            onRegionAction: (action, range) => {
+                if (action === 'primer') {
+                    app.switchTool('primer');
+                    document.getElementById('primer-target-start').value = range.start + 1;
+                    document.getElementById('primer-target-end').value = range.end;
+                } else if (['translation', 'restriction', 'stats'].includes(action)) {
+                    app.setState({activeTool: action});
+                    extractToDocument(seq, {...range, sequence: seq.sequence.slice(range.start, range.end)});
+                } else if (action === 'export') {
+                    const name = `${seq.name} ${range.start + 1}..${range.end}`;
+                    const text = seq.sequence.slice(range.start, range.end).match(/.{1,80}/g)?.join('\n') || '';
+                    downloadFile(`>${name.replace(/[\r\n]/g, ' ')}\n${text}\n`, `${seq.name.replace(/[^a-zA-Z0-9_-]/g, '_')}_${range.start + 1}-${range.end}.fasta`);
+                }
+            },
         });
     }
 

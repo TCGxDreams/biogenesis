@@ -1,6 +1,7 @@
 import {afterEach,expect,it,vi} from 'vitest';
-const fake=vi.hoisted(()=>({rpc:vi.fn(),maybeSingle:vi.fn(),onAuthStateChange:vi.fn()}));
-vi.mock('../services/supabase.js',()=>({supabase:{rpc:fake.rpc,from:()=>({select:()=>({eq:()=>({maybeSingle:fake.maybeSingle})})}),auth:{onAuthStateChange:fake.onAuthStateChange}}}));
+const fake=vi.hoisted(()=>({rpc:vi.fn(),maybeSingle:vi.fn(),onAuthStateChange:vi.fn(),signOut:vi.fn()}));
+vi.mock('../services/supabase.js',()=>({supabase:{rpc:fake.rpc,from:()=>({select:()=>({eq:()=>({maybeSingle:fake.maybeSingle})})}),auth:{onAuthStateChange:fake.onAuthStateChange,signOut:fake.signOut}}}));
+vi.mock('./accountForms.js',()=>({mountProfileForm:vi.fn(),showPasswordLogin:vi.fn()}));
 import {initAccount} from './account.js';
 afterEach(()=>{vi.unstubAllGlobals();vi.clearAllMocks();vi.useRealTimers();});
 function setup(){
@@ -33,4 +34,25 @@ it('pauses autosync on conflict instead of silently replacing the remote',async(
  elements['cloud-auto'].listeners.change({target:checkbox});
  expect(checkbox.checked).toBe(false);
  expect(fake.rpc).toHaveBeenCalledTimes(1);
+});
+
+it('flushes the local workspace before signing out of this device',async()=>{
+ fake.maybeSingle.mockResolvedValue({data:null,error:null});
+ fake.signOut.mockResolvedValue({error:null});
+ const {elements,store}=setup();
+ elements['account-button'].listeners.click();
+ await vi.waitFor(()=>expect(elements['account-signout']?.listeners.click).toBeTypeOf('function'));
+ await elements['account-signout'].listeners.click();
+ expect(store.flush).toHaveBeenCalledTimes(1);
+ expect(fake.signOut).toHaveBeenCalledWith({scope:'local'});
+ expect(store.flush.mock.invocationCallOrder[0]).toBeLessThan(fake.signOut.mock.invocationCallOrder[0]);
+});
+it('shows sign-out errors and restores the button',async()=>{
+ fake.maybeSingle.mockResolvedValue({data:null,error:null});
+ fake.signOut.mockResolvedValue({error:{message:'Network unavailable'}});
+ const {elements}=setup(); elements['account-button'].listeners.click();
+ await vi.waitFor(()=>expect(elements['account-signout']?.listeners.click).toBeTypeOf('function'));
+ await elements['account-signout'].listeners.click();
+ expect(elements['account-status'].textContent).toBe('Network unavailable');
+ expect(elements['account-signout'].disabled).toBe(false);
 });

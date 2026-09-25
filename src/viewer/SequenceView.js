@@ -53,6 +53,7 @@ const TRACK_TOGGLES = [
 
 /**
  * @typedef {Object} SequenceViewOptions
+ * @property {(action: string, range: {start: number, end: number}) => void} [onRegionAction]
  * @property {HTMLElement} host Element the view takes over. Its contents are replaced.
  * @property {import('../core/types.js').Sequence} sequence
  * @property {(summary: string) => void} [onStatus] Receives the selection
@@ -78,7 +79,7 @@ const TRACK_TOGGLES = [
  * @param {SequenceViewOptions} options
  * @returns {SequenceViewHandle}
  */
-export function createSequenceView({ host, sequence, onStatus, onExtract, onAnnotate }) {
+export function createSequenceView({ host, sequence, onStatus, onExtract, onAnnotate, onRegionAction }) {
     const seqStr = sequence.sequence || '';
     const length = seqStr.length;
     const type = /** @type {'dna'|'rna'|'protein'} */ (sequence.type || 'dna');
@@ -504,7 +505,7 @@ export function createSequenceView({ host, sequence, onStatus, onExtract, onAnno
     on(dom.canvas, 'contextmenu', e => {
         e.preventDefault();
         const index = residueFromEvent(e);
-        if (!state.selection || index < state.selection.start || index >= state.selection.end) {
+        if (!state.selection) {
             setCursor(index, false);
         }
         showMenu(e.clientX, e.clientY);
@@ -513,6 +514,12 @@ export function createSequenceView({ host, sequence, onStatus, onExtract, onAnno
     on(dom.canvas, 'keydown', e => {
         const step = e.metaKey || e.ctrlKey ? layout.basesPerRow : 1;
         const at = state.cursor ?? 0;
+        if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) {
+            e.preventDefault();
+            const rect = dom.selectionActions.getBoundingClientRect();
+            showMenu(rect.left, rect.bottom);
+            return;
+        }
         switch (e.key) {
             case 'ArrowLeft':
                 setCursor(at - step, e.shiftKey);
@@ -589,41 +596,55 @@ export function createSequenceView({ host, sequence, onStatus, onExtract, onAnno
         const hasSelection = !!sel && sel.end > sel.start;
         const text = selectedText();
 
+        /** @param {string} vi @param {string} en */
+        const label = (vi, en) => document.documentElement.lang === 'en' ? en : vi;
         openContextMenu({
             x,
             y,
             items: [
+                ...[
+                    { action: 'primer', vi: 'Thiết kế mồi cho vùng chọn…', en: 'Design primers for selection…', allowed: type === 'dna' },
+                    { action: 'translation', vi: 'Dịch mã vùng chọn…', en: 'Translate selection…', allowed: nucleic },
+                    { action: 'restriction', vi: 'Tìm vị trí cắt trong vùng chọn…', en: 'Restriction sites in selection…', allowed: type === 'dna' },
+                    { action: 'stats', vi: 'Thống kê vùng chọn…', en: 'Selection statistics…', allowed: true },
+                    { action: 'export', vi: 'Xuất vùng chọn thành FASTA', en: 'Export selection as FASTA', allowed: true },
+                ].filter(item => item.allowed).map(item => ({
+                    label: label(item.vi, item.en),
+                    disabled: !hasSelection || !onRegionAction,
+                    onSelect: () => { if (sel) onRegionAction?.(item.action, {...sel}); },
+                })),
+                { separator: true },
                 {
-                    label: 'Copy',
+                    label: label('Sao chép', 'Copy'),
                     accelerator: '⌘C',
                     disabled: !hasSelection,
                     onSelect: () => copy(text),
                 },
                 {
-                    label: 'Copy reverse complement',
+                    label: label('Sao chép chuỗi bổ sung đảo', 'Copy reverse complement'),
                     disabled: !hasSelection || !nucleic,
                     onSelect: () => copy(reverseComplement(text)),
                 },
                 {
-                    label: 'Copy translation',
+                    label: label('Sao chép bản dịch mã', 'Copy translation'),
                     disabled: !hasSelection || !nucleic,
                     onSelect: () => copy(translate(text)),
                 },
                 { separator: true },
                 {
-                    label: 'Extract to new document',
+                    label: label('Trích thành tài liệu mới', 'Extract to new document'),
                     disabled: !hasSelection || !onExtract,
                     onSelect: () =>
                         sel && onExtract?.({ start: sel.start, end: sel.end, sequence: text }),
                 },
                 {
-                    label: 'Add annotation here',
+                    label: label('Thêm chú thích cho vùng chọn', 'Add annotation here'),
                     disabled: !hasSelection || !onAnnotate,
                     onSelect: () => sel && onAnnotate?.({ start: sel.start, end: sel.end }),
                 },
                 { separator: true },
                 {
-                    label: 'Zoom to selection',
+                    label: label('Phóng to vùng chọn', 'Zoom to selection'),
                     disabled: !hasSelection,
                     onSelect: () => {
                         if (!sel) return;
@@ -631,8 +652,8 @@ export function createSequenceView({ host, sequence, onStatus, onExtract, onAnno
                         scrollToResidue(sel.start);
                     },
                 },
-                { label: 'Zoom to fit', onSelect: fitToWindow },
-                { label: 'Select all', accelerator: '⌘A', onSelect: () => select(0, length) },
+                { label: label('Vừa màn hình', 'Zoom to fit'), onSelect: fitToWindow },
+                { label: label('Chọn tất cả', 'Select all'), accelerator: '⌘A', onSelect: () => select(0, length) },
             ],
         });
     }

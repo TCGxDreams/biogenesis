@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+    envDir: 'config/env',
     test: {
         environment: 'node',
         include: ['src/**/*.test.js', 'tools/**/*.test.js'],

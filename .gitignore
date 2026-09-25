@@ -62,3 +62,12 @@ GENEIOUS_IMPORT_REVIEW.md
 /LEARNING.md
 /REVIEW.md
 /SUPABASE_SETUP.md
+
+# Relocated private documentation and environment files
+/docs/guides/LEARNING.md
+/docs/guides/SUPABASE_SETUP.md
+/docs/architecture/DATA_DOCUMENTS.md
+/docs/reviews/REVIEW.md
+/docs/reviews/GENEIOUS_IMPORT_REVIEW.md
+/config/env/.env*
+!/config/env/.env.example

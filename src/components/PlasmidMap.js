@@ -173,7 +173,7 @@ export function renderPlasmidMap(seq) {
              <div style="display:flex;align-items:center;padding:6px 10px;background:var(--bg-tertiary);border:1px solid var(--border-muted);border-radius:var(--radius-sm);">
                  <span style="width:10px;height:10px;border-radius:50%;background:${color};margin-right:10px;"></span>
                 <div style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                  <span style="font-size:12px;font-weight:600;color:var(--text-primary);margin-right:6px;">${escapeHtml(label)}</span>
+                  <button class="feature-open-button" data-feature-start="${feat.start}" data-feature-end="${feat.end}">${escapeHtml(label)} ↗</button>
                   <span style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono);">${feat.start + 1}..${feat.end}</span>
                 </div>
             </div>`;

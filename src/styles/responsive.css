@@ -271,3 +271,23 @@
 .plasmid-enzyme-rows { max-height: 300px; overflow: auto; }
 .plasmid-enzyme-rows > div { display: flex; justify-content: space-between; padding: 8px 0; gap: 12px; border-bottom: 1px solid var(--border-muted); font: 12px var(--font-mono); }
 @media (max-width: 1000px) { .plasmid-panel .panel-body { grid-template-columns: minmax(0, 1fr); } .plasmid-panel .plasmid-svg { max-height: none; } }
+
+.selection-workflow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: var(--bg-elevated); border-bottom: 1px solid var(--border-default); flex-shrink: 0; }
+.selection-workflow > span { font-size: 12px; color: var(--text-secondary); }
+.selection-workflow > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.selection-workflow .btn { font-size: 12px; min-height: 36px; }
+#panel-container:has(> .selection-workflow) { display: flex; flex-direction: column; }
+#panel-container > .sv-host { flex: 1; min-height: 240px; height: auto; }
+.feature-open-button { color: var(--accent-blue); background: transparent; border: 0; padding: 4px 0; font: 600 12px var(--font-sans); cursor: pointer; text-align: left; }
+.feature-open-button:hover { text-decoration: underline; }
+@media (max-width: 760px) { .selection-workflow .btn { min-height: 44px; } }
+
+.account-card { max-width: 440px; margin: 0 auto; }
+.account-card p, .account-card small { color: var(--text-secondary); line-height: 1.6; }
+.account-tabs { display: flex; gap: 8px; margin: 20px 0; }
+.account-tabs button { flex: 1; }
+.account-tabs [aria-pressed='true'] { color: var(--accent-blue); background: var(--bg-active); }
+.account-card .account-check { display: flex; flex-direction: row; align-items: center; gap: 8px; }
+.account-profile { margin: 20px 0; padding-top: 16px; border-top: 1px solid var(--border-default); }
+.account-profile summary { cursor: pointer; padding: 10px 0; color: var(--accent-blue); }
+.account-card input, .account-profile input { min-height: 42px; }
