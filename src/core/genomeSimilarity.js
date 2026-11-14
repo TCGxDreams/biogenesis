@@ -79,7 +79,9 @@ export const MIN_MEASURABLE_CONTAINMENT = 0.02;
 const HASH_SPACE = 4294967296;
 
 /** Two bits per base; anything else breaks the rolling encode. */
+/** @type {Record<string, number|undefined>} */
 const BASE_CODE = { A: 0, C: 1, G: 2, T: 3, U: 3 };
+/** @type {Record<string, number>} */
 const COMPLEMENT_CODE = { A: 3, C: 2, G: 1, T: 0, U: 0 };
 
 /**
@@ -283,6 +285,8 @@ export function estimateIdentity(containment, k) {
  *   lower whenever part of either genome does not align.
  * @property {number} coverage Rough fraction of the better-covered genome that
  *   participates, 0-1. Noisier than `similarity`; a guard, not a measurement.
+ * @property {boolean} contained One genome sits almost entirely inside the
+ *   other, which is mostly other sequence.
  * @property {string} verdict One of `same-species`, `same-genus`,
  *   `borderline`, `outside-genus`, `unmeasurable`.
  * @property {boolean} reliable False when the sketch cannot support the call.
@@ -435,7 +439,7 @@ export function classify(similarity, containment, coverage = 1, contained = fals
  * @returns {number} A scaled factor between 1 and `DEFAULT_SCALED`.
  */
 export function chooseScaled(lengths, target = TARGET_SKETCH_HASHES) {
-    const shortest = Math.min(...lengths.filter((n) => Number.isFinite(n) && n > 0));
+    const shortest = Math.min(...lengths.filter(n => Number.isFinite(n) && n > 0));
     if (!Number.isFinite(shortest)) return DEFAULT_SCALED;
     return Math.max(1, Math.min(DEFAULT_SCALED, Math.floor(shortest / target)));
 }
@@ -444,7 +448,7 @@ export function chooseScaled(lengths, target = TARGET_SKETCH_HASHES) {
  * Sketch a set of genomes and compare every pair.
  *
  * @param {{name: string, sequence: string}[]} genomes
- * @param {Object} [options] Passed through to `sketchGenome`.
+ * @param {{k?: number, scaled?: number}} [options] Passed to `sketchGenome`.
  * @returns {{
  *   names: string[],
  *   sketches: GenomeSketch[],
@@ -459,8 +463,8 @@ export function similarityMatrix(genomes, options = {}) {
     }
 
     const scaled =
-        options.scaled ?? chooseScaled(genomes.map((g) => String(g.sequence || '').length));
-    const sketches = genomes.map((g) =>
+        options.scaled ?? chooseScaled(genomes.map(g => String(g.sequence || '').length));
+    const sketches = genomes.map(g =>
         sketchGenome(g.sequence, { ...options, scaled, name: g.name })
     );
     const n = sketches.length;
@@ -483,7 +487,7 @@ export function similarityMatrix(genomes, options = {}) {
         }
     }
 
-    return { names: genomes.map((g) => g.name), sketches, matrix, similarity };
+    return { names: genomes.map(g => g.name), sketches, matrix, similarity };
 }
 
 /**
@@ -492,7 +496,7 @@ export function similarityMatrix(genomes, options = {}) {
  *
  * @param {{name: string, sequence: string}} query
  * @param {{name: string, sequence: string}[]} references
- * @param {Object} [options]
+ * @param {{k?: number, scaled?: number}} [options]
  * @returns {{name: string, comparison: GenomeComparison}[]}
  */
 export function rankAgainstQuery(query, references, options = {}) {
@@ -505,19 +509,21 @@ export function rankAgainstQuery(query, references, options = {}) {
 
     const scaled =
         options.scaled ??
-        chooseScaled([query, ...references].map((g) => String(g.sequence || '').length));
+        chooseScaled([query, ...references].map(g => String(g.sequence || '').length));
     const q = sketchGenome(query.sequence, { ...options, scaled, name: query.name });
 
-    return references
-        .map((ref) => ({
-            name: ref.name,
-            length: ref.sequence.length,
-            comparison: compareSketches(
-                q,
-                sketchGenome(ref.sequence, { ...options, scaled, name: ref.name })
-            ),
-        }))
-        // Unmeasurable pairs carry no figure, so they sort below every pair
-        // that does rather than drifting to the top on a NaN comparison.
-        .sort((x, y) => (y.comparison.similarity ?? -1) - (x.comparison.similarity ?? -1));
+    return (
+        references
+            .map(ref => ({
+                name: ref.name,
+                length: ref.sequence.length,
+                comparison: compareSketches(
+                    q,
+                    sketchGenome(ref.sequence, { ...options, scaled, name: ref.name })
+                ),
+            }))
+            // Unmeasurable pairs carry no figure, so they sort below every pair
+            // that does rather than drifting to the top on a NaN comparison.
+            .sort((x, y) => (y.comparison.similarity ?? -1) - (x.comparison.similarity ?? -1))
+    );
 }

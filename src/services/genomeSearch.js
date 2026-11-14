@@ -88,7 +88,7 @@ export function parseMultiFasta(text) {
             current.sequence += line.trim();
         }
     }
-    return out.filter((r) => r.sequence.length > 0);
+    return out.filter(r => r.sequence.length > 0);
 }
 
 /** @param {string} url @param {AbortSignal} [signal] */
@@ -104,6 +104,7 @@ async function request(url, signal) {
     return response;
 }
 
+/** @param {AbortSignal} [signal] */
 function pause(signal) {
     return new Promise((resolve, reject) => {
         const timer = setTimeout(resolve, REQUEST_SPACING_MS);
@@ -123,10 +124,7 @@ function pause(signal) {
  * sequence yet — the caller decides what is worth fetching.
  *
  * @param {string} term
- * @param {Object} options
- * @param {{min: number, max: number}} options.window
- * @param {number} [options.limit=20]
- * @param {AbortSignal} [options.signal]
+ * @param {{window?: {min: number, max: number}, limit?: number, signal?: AbortSignal}} [options]
  * @returns {Promise<{total: number, records: GenomeRecord[]}>}
  */
 export async function searchGenomes(term, { window, limit = 20, signal } = {}) {
@@ -157,24 +155,26 @@ export async function searchGenomes(term, { window, limit = 20, signal } = {}) {
         id: ids.join(','),
         retmode: 'json',
     });
-    const summaries = await (
-        await request(`${BASE}esummary.fcgi?${summaryParams}`, signal)
-    ).json();
+    const summaries = await (await request(`${BASE}esummary.fcgi?${summaryParams}`, signal)).json();
     if (!summaries.result) throw new Error('Could not read record summaries. Please retry.');
 
-    const records = ids
-        .map((id) => {
-            const r = summaries.result[id];
-            if (!r || r.error) return null;
-            return {
-                id,
-                accession: r.accessionversion || r.caption || id,
-                title: r.title || '',
-                organism: r.organism || '',
-                length: Number(r.slen || 0),
-            };
-        })
-        .filter((r) => r && r.length > 0 && r.length <= GENOME_LIMIT);
+    // Built with a loop rather than map+filter so a summary NCBI could not
+    // return never reaches the result as a null.
+    /** @type {GenomeRecord[]} */
+    const records = [];
+    for (const id of ids) {
+        const r = summaries.result[id];
+        if (!r || r.error) continue;
+        const length = Number(r.slen || 0);
+        if (length <= 0 || length > GENOME_LIMIT) continue;
+        records.push({
+            id,
+            accession: r.accessionversion || r.caption || id,
+            title: r.title || '',
+            organism: r.organism || '',
+            length,
+        });
+    }
 
     return { total, records };
 }
@@ -183,9 +183,7 @@ export async function searchGenomes(term, { window, limit = 20, signal } = {}) {
  * Fetch the sequences for chosen records, in paced batches.
  *
  * @param {GenomeRecord[]} records
- * @param {Object} [options]
- * @param {AbortSignal} [options.signal]
- * @param {(done: number, total: number) => void} [options.onProgress]
+ * @param {{signal?: AbortSignal, onProgress?: (done: number, total: number) => void}} [options]
  * @returns {Promise<{name: string, accession: string, sequence: string}[]>}
  */
 export async function fetchGenomes(records, { signal, onProgress } = {}) {
@@ -200,7 +198,7 @@ export async function fetchGenomes(records, { signal, onProgress } = {}) {
         const batch = wanted.slice(i, i + FETCH_BATCH);
         const params = new URLSearchParams({
             db: 'nuccore',
-            id: batch.map((r) => r.id).join(','),
+            id: batch.map(r => r.id).join(','),
             rettype: 'fasta',
             retmode: 'text',
         });

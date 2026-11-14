@@ -136,7 +136,7 @@ export function bindGenomeSimilarityEvents(seq, context) {
     const sequences = context?.sequences || [];
     document.getElementById('run-genomesim-btn')?.addEventListener('click', () => {
         const checked = Array.from(document.querySelectorAll('.genomesim-seq-check:checked'));
-        const picked = checked.map((c) => sequences[parseInt(c.value, 10)]).filter(Boolean);
+        const picked = checked.map(c => sequences[parseInt(c.value, 10)]).filter(Boolean);
         const k = parseInt(document.getElementById('genomesim-k')?.value || '21', 10);
         const result = document.getElementById('genomesim-result');
         if (!result) return;
@@ -161,7 +161,7 @@ export function bindGenomeSimilarityEvents(seq, context) {
 
     // Delegated: the result area is rewritten on every run, so binding the
     // export buttons themselves would go stale each time.
-    document.getElementById('genomesim-result')?.addEventListener('click', (event) => {
+    document.getElementById('genomesim-result')?.addEventListener('click', event => {
         const format = event.target?.closest?.('[data-export]')?.dataset?.export;
         if (!format || !currentReport) return;
         const text =
@@ -205,7 +205,7 @@ async function findRelatives(sequences) {
     const k = parseInt(document.getElementById('genomesim-k')?.value || '21', 10);
     const range = lengthWindow(query.sequence.length, tolerance);
 
-    const status = (message) => {
+    const status = message => {
         result.innerHTML = `<p style="color:var(--text-muted);padding:20px;">${escapeHtml(message)}</p>`;
     };
 
@@ -221,15 +221,14 @@ async function findRelatives(sequences) {
 
         status(`Found ${total.toLocaleString()} matches; downloading ${records.length}…`);
         const genomes = await fetchGenomes(records, {
-            onProgress: (done, count) =>
-                status(`Downloading genomes… ${done}/${count}`),
+            onProgress: (done, count) => status(`Downloading genomes… ${done}/${count}`),
         });
 
         status(`Sketching ${genomes.length} genomes…`);
         const started = performance.now();
         const ranked = rankAgainstQuery(
             { name: query.name, sequence: query.sequence },
-            genomes.map((g) => ({ name: g.name, sequence: g.sequence })),
+            genomes.map(g => ({ name: g.name, sequence: g.sequence })),
             { k }
         );
         const elapsed = Math.round(performance.now() - started);
@@ -263,7 +262,7 @@ function renderRelatives(query, ranked, { total, elapsed, k, range }) {
         })
         .join('');
 
-    const best = ranked.find((r) => r.comparison.similarity !== null);
+    const best = ranked.find(r => r.comparison.similarity !== null);
     const headline = best
         ? `Closest: <strong>${escapeHtml(shorten(best.name, 60))}</strong> at ${best.comparison.similarity.toFixed(2)}% estimated identity.`
         : 'No candidate shared enough k-mers to measure.';
@@ -301,7 +300,7 @@ function computeAndRender(genomes, k) {
     let data;
     try {
         data = similarityMatrix(
-            genomes.map((g) => ({ name: g.name, sequence: g.sequence })),
+            genomes.map(g => ({ name: g.name, sequence: g.sequence })),
             { k }
         );
     } catch (error) {
@@ -330,7 +329,7 @@ function computeAndRender(genomes, k) {
 function renderMatrix({ names, matrix, similarity }) {
     const header = names
         .map(
-            (n) =>
+            n =>
                 `<th style="font-size:11px;font-weight:600;padding:4px;writing-mode:vertical-rl;text-orientation:mixed;max-height:120px;">${escapeHtml(shorten(n))}</th>`
         )
         .join('');
@@ -426,6 +425,6 @@ function shorten(name, max = 28) {
 function escapeHtml(str) {
     return String(str ?? '').replace(
         /[&<>"']/g,
-        (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
+        c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
     );
 }

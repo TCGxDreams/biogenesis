@@ -88,7 +88,10 @@ describe('reportToTsv', () => {
     });
 
     it('writes one tab-separated row per pair', () => {
-        const dataLines = tsv.trim().split('\n').filter((l) => !l.startsWith('#'));
+        const dataLines = tsv
+            .trim()
+            .split('\n')
+            .filter(l => !l.startsWith('#'));
         expect(dataLines[0].split('\t')).toEqual([
             'genome_a',
             'genome_b',

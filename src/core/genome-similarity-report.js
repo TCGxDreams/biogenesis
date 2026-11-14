@@ -12,7 +12,10 @@
 import { BioError } from './errors.js';
 import { SPECIES_THRESHOLD, GENUS_THRESHOLD } from './genomeSimilarity.js';
 
-/** What each verdict means, spelled out once for every serializer. */
+/**
+ * What each verdict means, spelled out once for every serializer.
+ * @type {Record<string, string>}
+ */
 export const VERDICT_TEXT = {
     'same-species': 'same species',
     'same-genus': 'same genus',
@@ -65,7 +68,7 @@ export const METHOD_NOTE =
  * @returns {SimilarityReport}
  * @throws {BioError} `EMPTY_REPORT`
  */
-export function matrixReport(data, { k, generatedAt } = {}) {
+export function matrixReport(data, { k, generatedAt }) {
     if (!data || !Array.isArray(data.names) || data.names.length < 2) {
         throw new BioError('Nothing to report.', 'EMPTY_REPORT');
     }
@@ -109,7 +112,7 @@ export function matrixReport(data, { k, generatedAt } = {}) {
  * @returns {SimilarityReport}
  * @throws {BioError} `EMPTY_REPORT`
  */
-export function relativesReport(query, ranked, { k, total, range, term, generatedAt } = {}) {
+export function relativesReport(query, ranked, { k, total, range, term, generatedAt }) {
     if (!query?.name || !Array.isArray(ranked) || ranked.length === 0) {
         throw new BioError('Nothing to report.', 'EMPTY_REPORT');
     }
@@ -132,7 +135,7 @@ export function relativesReport(query, ranked, { k, total, range, term, generate
         title: `Genome similarity — ${query.name} against a reference set`,
         k,
         generatedAt: generatedAt || new Date().toISOString(),
-        pairs: ranked.map((r) => ({
+        pairs: ranked.map(r => ({
             a: query.name,
             b: r.name,
             similarity: r.comparison.similarity,
@@ -144,7 +147,11 @@ export function relativesReport(query, ranked, { k, total, range, term, generate
     };
 }
 
-/** Format a similarity for output, keeping "not measurable" distinct from zero. */
+/**
+ * Format a similarity for output, keeping "not measurable" distinct from zero.
+ * @param {number|null|undefined} value
+ * @returns {string}
+ */
 function formatSimilarity(value) {
     return value === null || value === undefined ? 'NA' : value.toFixed(2);
 }
@@ -164,10 +171,15 @@ export function reportToTsv(report) {
         `# generated: ${report.generatedAt}`,
         `# k-mer size: ${report.k}`,
         `# ${METHOD_NOTE}`,
-        ...report.notes.map((n) => `# ${n}`),
-        ['genome_a', 'genome_b', 'identity_percent', 'kmer_containment', 'mash_distance', 'verdict'].join(
-            '\t'
-        ),
+        ...report.notes.map(n => `# ${n}`),
+        [
+            'genome_a',
+            'genome_b',
+            'identity_percent',
+            'kmer_containment',
+            'mash_distance',
+            'verdict',
+        ].join('\t'),
     ];
     for (const p of report.pairs) {
         lines.push(
@@ -193,7 +205,7 @@ export function reportToTsv(report) {
 export function reportToMarkdown(report) {
     const rows = report.pairs
         .map(
-            (p) =>
+            p =>
                 `| ${p.a} | ${p.b} | ${formatSimilarity(p.similarity)} | ${(p.containment * 100).toFixed(1)}% | ${p.mashDistance.toFixed(4)} | ${VERDICT_TEXT[p.verdict] || p.verdict} |`
         )
         .join('\n');
@@ -203,7 +215,7 @@ export function reportToMarkdown(report) {
         '',
         `Generated ${report.generatedAt} · k = ${report.k}`,
         '',
-        ...(report.notes.length ? [...report.notes.map((n) => `- ${n}`), ''] : []),
+        ...(report.notes.length ? [...report.notes.map(n => `- ${n}`), ''] : []),
         '| Genome A | Genome B | Identity % | k-mers shared | MASH distance | Verdict |',
         '| --- | --- | --- | --- | --- | --- |',
         rows,

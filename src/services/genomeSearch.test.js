@@ -19,7 +19,7 @@ afterEach(() => {
 /** Reply to each call in order, matching on a fragment of the URL. */
 function mockFetch(handlers) {
     const calls = [];
-    globalThis.fetch = vi.fn(async (url) => {
+    globalThis.fetch = vi.fn(async url => {
         calls.push(String(url));
         const handler = handlers.find(([fragment]) => String(url).includes(fragment));
         if (!handler) throw new Error(`Unexpected request: ${url}`);
@@ -116,14 +116,12 @@ describe('searchGenomes', () => {
 
         const result = await searchGenomes('phage[Title]', { window, limit: 10 });
         expect(result.total).toBe(2);
-        expect(result.records.map((r) => r.accession)).toEqual(['MT001829.1', 'KY630187.1']);
+        expect(result.records.map(r => r.accession)).toEqual(['MT001829.1', 'KY630187.1']);
         expect(calls[0]).toContain('280000%3A420000%5BSLEN%5D');
     });
 
     it('caps the request at MAX_RELATIVES', async () => {
-        const calls = mockFetch([
-            ['esearch', { esearchresult: { count: '0', idlist: [] } }],
-        ]);
+        const calls = mockFetch([['esearch', { esearchresult: { count: '0', idlist: [] } }]]);
         await searchGenomes('phage[Title]', { window, limit: 5000 });
         expect(calls[0]).toContain(`retmax=${MAX_RELATIVES}`);
     });
@@ -150,7 +148,7 @@ describe('searchGenomes', () => {
     });
 
     it('rejects a query NCBI could not parse', async () => {
-        mockFetch([['esearch', { esearchresult: { ERROR: 'bad query' } } ]]);
+        mockFetch([['esearch', { esearchresult: { ERROR: 'bad query' } }]]);
         await expect(searchGenomes('((', { window })).rejects.toThrow(/could not interpret/);
     });
 
@@ -161,9 +159,7 @@ describe('searchGenomes', () => {
 
 describe('fetchGenomes', () => {
     it('parses the sequences and reports progress', async () => {
-        mockFetch([
-            ['efetch', '>MT001829.1 SE_PL\nACGTACGT\n>KY630187.1 BF\nTTTTAAAA\n'],
-        ]);
+        mockFetch([['efetch', '>MT001829.1 SE_PL\nACGTACGT\n>KY630187.1 BF\nTTTTAAAA\n']]);
         const seen = [];
         const genomes = await fetchGenomes(
             [
@@ -172,7 +168,7 @@ describe('fetchGenomes', () => {
             ],
             { onProgress: (done, total) => seen.push([done, total]) }
         );
-        expect(genomes.map((g) => g.accession)).toEqual(['MT001829.1', 'KY630187.1']);
+        expect(genomes.map(g => g.accession)).toEqual(['MT001829.1', 'KY630187.1']);
         expect(seen).toEqual([[2, 2]]);
     });
 

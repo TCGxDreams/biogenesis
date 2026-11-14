@@ -49,7 +49,11 @@ function mutate(sequence, rate, seed) {
 
 function reverseComplement(sequence) {
     const map = { A: 'T', C: 'G', G: 'C', T: 'A' };
-    return sequence.split('').reverse().map((b) => map[b] || b).join('');
+    return sequence
+        .split('')
+        .reverse()
+        .map(b => map[b] || b)
+        .join('');
 }
 
 const GENOME = randomGenome(20000, 7);
@@ -164,9 +168,7 @@ describe('classify', () => {
         );
         expect(classify(SPECIES_THRESHOLD, 0.9).verdict).toBe('borderline');
         expect(classify(GENUS_THRESHOLD, 0.5).verdict).toBe('borderline');
-        expect(classify(GENUS_THRESHOLD + ESTIMATE_MARGIN + 0.1, 0.5).verdict).toBe(
-            'same-genus'
-        );
+        expect(classify(GENUS_THRESHOLD + ESTIMATE_MARGIN + 0.1, 0.5).verdict).toBe('same-genus');
         expect(classify(40, 0.2).verdict).toBe('outside-genus');
     });
 
@@ -222,13 +224,10 @@ describe('similarityMatrix', () => {
 
 describe('rankAgainstQuery', () => {
     it('puts the closest relative first and keeps unmeasurable pairs last', () => {
-        const ranked = rankAgainstQuery(
-            { name: 'query', sequence: GENOME },
-            [
-                { name: 'unrelated', sequence: randomGenome(20000, 5) },
-                { name: 'close', sequence: mutate(GENOME, 0.005, 9) },
-            ]
-        );
+        const ranked = rankAgainstQuery({ name: 'query', sequence: GENOME }, [
+            { name: 'unrelated', sequence: randomGenome(20000, 5) },
+            { name: 'close', sequence: mutate(GENOME, 0.005, 9) },
+        ]);
         expect(ranked[0].name).toBe('close');
         expect(ranked[0].comparison.verdict).toBe('same-species');
         expect(ranked[1].comparison.similarity).toBeNull();
