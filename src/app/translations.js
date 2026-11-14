@@ -527,5 +527,53 @@ export const translations = {
     "Select sequences and click \"Run Alignment\"": {
         "en": "Select sequences and click \"Run Alignment\"",
         "vi": "Chọn trình tự và bấm \"Chạy căn chỉnh\""
+    },
+    "Genome Similarity": {
+        "en": "Genome Similarity",
+        "vi": "Độ tương đồng genome"
+    },
+    "Genomes to compare": {
+        "en": "Genomes to compare",
+        "vi": "Genome cần so sánh"
+    },
+    "k-mer size": {
+        "en": "k-mer size",
+        "vi": "Kích thước k-mer"
+    },
+    "Compare Genomes": {
+        "en": "Compare Genomes",
+        "vi": "So sánh genome"
+    },
+    "GenBank term": {
+        "en": "GenBank term",
+        "vi": "Từ khoá GenBank"
+    },
+    "Length window": {
+        "en": "Length window",
+        "vi": "Khoảng độ dài"
+    },
+    "Candidates": {
+        "en": "Candidates",
+        "vi": "Số ứng viên"
+    },
+    "Find Relatives": {
+        "en": "Find Relatives",
+        "vi": "Tìm họ hàng"
+    },
+    "Export TSV": {
+        "en": "Export TSV",
+        "vi": "Xuất TSV"
+    },
+    "Export Markdown": {
+        "en": "Export Markdown",
+        "vi": "Xuất Markdown"
+    },
+    "Select two or more genomes and run the comparison.": {
+        "en": "Select two or more genomes and run the comparison.",
+        "vi": "Chọn từ hai genome trở lên rồi chạy so sánh."
+    },
+    "Screens the first ticked genome against GenBank records of similar length.": {
+        "en": "Screens the first ticked genome against GenBank records of similar length.",
+        "vi": "Đối chiếu genome được tick đầu tiên với các bản ghi GenBank có độ dài tương tự."
     }
 };

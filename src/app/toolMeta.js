@@ -76,6 +76,13 @@ export const TOOL_META = {
         needsSequences: 3,
         usesActiveSequence: false,
     },
+    genomesim: {
+        id: 'genomesim',
+        label: 'Genome Similarity',
+        accepts: ['dna', 'rna'],
+        needsSequences: 2,
+        usesActiveSequence: false,
+    },
     stats: {
         id: 'stats',
         label: 'Statistics',

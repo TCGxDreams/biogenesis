@@ -13,6 +13,10 @@ import { renderPlasmidMap, bindPlasmidMapEvents } from '../components/PlasmidMap
 import { renderAlignment } from '../components/SequenceAlignment.js';
 import { renderDotPlot } from '../components/DotPlot.js';
 import { renderPhyloTree } from '../components/PhyloTree.js';
+import {
+    renderGenomeSimilarity,
+    bindGenomeSimilarityEvents,
+} from '../components/GenomeSimilarity.js';
 import { renderStatistics } from '../components/Statistics.js';
 import { renderMotifFinder } from '../components/MotifFinder.js';
 import {
@@ -83,6 +87,10 @@ const RENDERERS = {
     },
     phylo: {
         render: (seq, { sequences }) => renderPhyloTree(sequences),
+    },
+    genomesim: {
+        render: (seq, { sequences }) => renderGenomeSimilarity(sequences),
+        bind: (seq, context) => bindGenomeSimilarityEvents(seq, context),
     },
     stats: {
         render: seq => renderStatistics(seq),

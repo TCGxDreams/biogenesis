@@ -13,8 +13,8 @@ const protein = { name: 'c', type: 'protein', sequence: 'MKWV' };
 const ctx = (sequences, activeSequenceIdx = 0) => ({ sequences, activeSequenceIdx });
 
 describe('TOOL_META', () => {
-    it('registers all sixteen tools', () => {
-        expect(Object.keys(TOOLS)).toHaveLength(16);
+    it('registers all seventeen tools', () => {
+        expect(Object.keys(TOOLS)).toHaveLength(17);
     });
 
     it('gives every entry an id matching its key', () => {
