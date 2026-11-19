@@ -36,16 +36,12 @@ import {
 const STATUS_FOR_EXIT = { 0: 200, 1: 422, 2: 400 };
 
 /**
- * Identify the caller, preferring the proxy-forwarded address.
+ * Identify the caller from the connection, without trusting client-supplied headers.
  *
  * @param {import('node:http').IncomingMessage} req
  * @returns {string}
  */
 function clientKey(req) {
-    const forwarded = req.headers['x-forwarded-for'];
-    if (typeof forwarded === 'string' && forwarded.length > 0) {
-        return forwarded.split(',')[0].trim();
-    }
     return req.socket.remoteAddress ?? 'unknown';
 }
 

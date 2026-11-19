@@ -56,3 +56,15 @@ it('shows sign-out errors and restores the button',async()=>{
  expect(elements['account-status'].textContent).toBe('Network unavailable');
  expect(elements['account-signout'].disabled).toBe(false);
 });
+
+it('does not sign out if the local workspace cannot be saved',async()=>{
+ fake.maybeSingle.mockResolvedValue({data:null,error:null});
+ const {elements,store}=setup();
+ store.flush.mockRejectedValueOnce(new Error('Storage unavailable'));
+ elements['account-button'].listeners.click();
+ await vi.waitFor(()=>expect(elements['account-signout']?.listeners.click).toBeTypeOf('function'));
+ await elements['account-signout'].listeners.click();
+ expect(fake.signOut).not.toHaveBeenCalled();
+ expect(elements['account-status'].textContent).toBe('Storage unavailable');
+ expect(elements['account-signout'].disabled).toBe(false);
+});

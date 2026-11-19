@@ -55,19 +55,16 @@ export function createStore(initialState, options = {}) {
         // `persist` is invoked synchronously so a caller that advances timers
         // sees the call immediately; only its result is awaited.
         try {
-            return Promise.resolve(persist(state)).catch(e =>
-                console.error('Auto-save failed:', e)
-            );
+            return Promise.resolve(persist(state));
         } catch (e) {
-            console.error('Auto-save failed:', e);
-            return Promise.resolve();
+            return Promise.reject(e);
         }
     }
 
     function schedulePersist() {
         if (!persist) return;
         if (saveTimer !== null) clearTimeout(saveTimer);
-        saveTimer = setTimeout(runPersist, debounceMs);
+        saveTimer = setTimeout(() => { runPersist().catch(e => console.error('Auto-save failed:', e)); }, debounceMs);
     }
 
     return {

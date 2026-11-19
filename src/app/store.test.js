@@ -172,6 +172,11 @@ describe('createStore — flush and cancel', () => {
         expect(persist).toHaveBeenCalledTimes(1); // not run twice
     });
 
+    it('propagates save failures to callers that explicitly flush', async () => {
+        const store = createStore({ a: 1 }, { persist: () => Promise.reject(new Error('quota exceeded')) });
+        await expect(store.flush()).rejects.toThrow('quota exceeded');
+    });
+
     it('flush works with nothing pending', async () => {
         const persist = vi.fn();
         const store = createStore({ a: 1 }, { persist });

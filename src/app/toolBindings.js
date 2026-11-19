@@ -422,7 +422,8 @@ function bindBlastEvents() {
                 resultDiv.innerHTML = html;
                 setStatus('BLAST search complete');
             } catch (err) {
-                resultDiv.innerHTML = `<div class="empty-state"><span class="empty-state-icon">❌</span><p class="empty-state-text" style="color:#ef4444;">Error: ${err.message}</p></div>`;
+                resultDiv.innerHTML = `<div class="empty-state"><span class="empty-state-icon">❌</span><p class="empty-state-text" style="color:#ef4444;"></p></div>`;
+                resultDiv.querySelector('.empty-state-text').textContent = `Error: ${err.message}`;
                 setStatus('BLAST search failed');
             }
         }

@@ -68,7 +68,7 @@ export function initAccount(app, store, user) {
         }
         if (!user && !useCode) { showPasswordLogin(app, client, () => { show(true).catch(failure); }); return; }
         if (!user) {
-            app.showModal(`<h2>${bi('Đăng nhập bằng email','Sign in with email')}</h2><p>${bi('Nhận mã qua email. Dữ liệu khách và tài khoản được lưu riêng.','Receive an email code. Guest and account workspaces are separate.')}</p><form id="account-login" class="account-form"><label>Email<input class="form-input" id="account-email" type="email" autocomplete="email" required></label><button class="btn btn-primary">${bi('Gửi mã đăng nhập','Send sign-in code')}</button></form><form id="account-verify" class="account-form" hidden><label>${bi('Mã trong email','Email code')}<input id="account-code" class="form-input" inputmode="numeric" autocomplete="one-time-code" required></label><button class="btn btn-primary">${bi('Xác nhận','Verify')}</button></form><p id="account-status" role="status"></p>`);
+            app.showModal(`<h2>${bi('Đăng nhập bằng email','Sign in with email')}</h2><p>${bi('Nhận mã đăng nhập cho tài khoản hiện có. Sau khi đăng nhập, mở Tài khoản để đổi mật khẩu. Dữ liệu khách và tài khoản được lưu riêng.','Receive a sign-in code for an existing account. After signing in, open Account to change your password. Guest and account workspaces are separate.')}</p><form id="account-login" class="account-form"><label>Email<input class="form-input" id="account-email" type="email" autocomplete="email" required></label><button class="btn btn-primary">${bi('Gửi mã đăng nhập','Send sign-in code')}</button></form><form id="account-verify" class="account-form" hidden><label>${bi('Mã trong email','Email code')}<input id="account-code" class="form-input" inputmode="numeric" autocomplete="one-time-code" required></label><button class="btn btn-primary">${bi('Xác nhận','Verify')}</button></form><p id="account-status" role="status"></p>`);
             let email = '';
             document.getElementById('account-login')?.addEventListener('submit', async event => {
                 event.preventDefault();
@@ -77,7 +77,7 @@ export function initAccount(app, store, user) {
                 button.disabled = true;
                 try {
                     email = /** @type {HTMLInputElement} */(document.getElementById('account-email')).value.trim();
-                    const {error} = await client.auth.signInWithOtp({email});
+                    const {error} = await client.auth.signInWithOtp({email, options: {shouldCreateUser: false}});
                     if (error) throw error;
                     document.getElementById('account-verify')?.removeAttribute('hidden');
                     status = 'Kiểm tra email để lấy mã. / Check your email for the code.'; renderStatus();
@@ -150,7 +150,13 @@ export function initAccount(app, store, user) {
         if ((session?.user.id || null) !== (user?.id || null)) {
             stopped = true; automatic = false; clearTimeout(timer);
             // Flush into the OLD account namespace before reloading into the new session.
-            setTimeout(() => { store.flush().finally(() => window.location.reload()); },0);
+            setTimeout(() => {
+                store.flush().then(() => window.location.reload()).catch(() => {
+                    status = 'Không lưu được workspace trên máy. Hãy xuất dữ liệu trước khi tải lại. / Local save failed. Export your work before reloading.';
+                    renderStatus();
+                    app.setStatus(status);
+                });
+            },0);
         }
     });
 }
